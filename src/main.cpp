@@ -4,7 +4,7 @@
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int show_command) {
     fx3::EngineConfig config{};
-    config.window_title = L"FX3.DX12 | Renderer 0.1.0";
+    config.window_title = L"FX3.DX12 | 3D Renderer 0.2.0";
     config.window_width = 1280;
     config.window_height = 720;
 #ifdef FX3_DEBUG
