@@ -63,7 +63,6 @@ struct Vertex {
 struct alignas(16) FrameConstants {
     XMFLOAT4X4 world;
     XMFLOAT4X4 view_projection;
-    XMFLOAT4 light_direction;
 };
 
 constexpr UINT AlignConstantBufferSize(UINT size) {
