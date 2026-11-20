@@ -1,54 +1,26 @@
 # FX3.DX12
 
-FX3.DX12 is a standalone 3D renderer and game-engine foundation. This repository contains engine/runtime code only. Game-specific source, gameplay, levels, and assets belong in a separate game repository.
+Standalone engine and renderer. Game-specific gameplay, levels and assets belong in a separate game repository.
 
-## 0.2.0 — 3D renderer foundation
+## 0.3.1 — PySide6 editor prototype
 
-The 0.2.0 milestone moves beyond the clear-only bootstrap and renders an animated, indexed 3D cube using Direct3D 12.
+- Scene and Inspector panels
+- OpenGL-based 3D viewport for Wavefront OBJ files
+- OBJ polygon triangulation and negative-index support
+- Engine executable selection and process launch (F5)
+- Initial AA, FSR 3 and path-tracing settings UI
 
-Implemented:
-- Win32 window and engine loop
-- DXGI hardware adapter selection and D3D12 device
-- Direct command queue, command allocators, command list, and fence synchronization
-- Two-buffer flip-discard swap chain
-- RTV and DSV descriptor heaps
-- Depth buffer with depth testing and depth writes
-- Vertex and index buffers
-- HLSL vertex/pixel shaders compiled with DXC
-- Root signature and graphics pipeline state object
-- Per-frame constant buffers
-- World, view, and perspective projection matrices using DirectXMath
-- Animated 3D cube with per-face color and directional diffuse lighting
-- Resize handling for swap-chain and depth resources
+Important: OBJ preview currently uses OpenGL inside the editor. It is not D3D12/DXR. Path tracing and FSR 3 controls are placeholders until native renderer integration is implemented.
 
-## Build requirements
-
-- Windows 10/11 x64
-- Visual Studio 2022 with MSVC
-- Windows 10/11 SDK
-- CMake 3.24+
-- DirectX Shader Compiler (dxc.exe) available on PATH
+## Run the editor
 
 ```powershell
-git clone -b release/0.2.0 https://github.com/gameboyug12-ux/FX3.DX12.git
-cd FX3.DX12
-cmake -S . -B build -A x64
-cmake --build build --config Debug
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r editor\requirements.txt
+python editor\main.py
 ```
 
-The executable is generated under build/bin/Debug/ with Visual Studio generators. Compiled HLSL shaders are written to build/bin/shaders/.
+Default engine path: `C:/XWe0.2/bulid/main.exe`. Change it in File > Set engine executable.
 
-## Repository layout
-
-- include/fx3/ — public engine API
-- src/ — engine runtime and initial D3D12 renderer
-- shaders/ — HLSL source
-- docs/ — architecture notes
-
-## Current limitations
-
-This is an early 3D renderer milestone, not a production-ready engine. The renderer currently draws one built-in mesh. It does not yet provide a general mesh/material system, camera input controls, texture loading, model import, render graph, ECS, physics, audio, or editor.
-
-## Next milestone
-
-The next iteration should extract the D3D12 backend from the engine runtime and add reusable GPU buffers, descriptor allocation, material/shader management, camera controls, mesh loading, and a basic scene interface.
+See docs/0.3.1-EDITOR.md for architecture and limitations.
