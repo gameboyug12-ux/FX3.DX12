@@ -1,5 +1,5 @@
 from __future__ import annotations
-import math, struct, sys
+import ctypes, math, struct, sys
 from pathlib import Path
 from OpenGL.GL import *
 from PySide6.QtCore import Qt, QProcess, QTimer
