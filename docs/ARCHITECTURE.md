@@ -1,33 +1,45 @@
-# FX3.DX12 architecture — 0.1.0
+# FX3.DX12 architecture — 0.2.0
 
-## Scope
+## Repository boundary
 
-FX3.DX12 is the engine/renderer repository, not a game repository. Game-specific gameplay, assets, levels, and application source are intentionally excluded.
+FX3.DX12 contains the reusable engine and renderer only. A game should consume the engine from a separate project and must not place game-specific gameplay or assets in this repository.
 
-## Runtime flow
+## 0.2 renderer flow
 
-1. `fx3::Engine` owns the application lifetime.
-2. The Win32 platform layer registers and creates the native window.
-3. `D3D12Renderer` creates the DXGI factory, selects a hardware adapter, and creates the D3D12 device.
-4. A direct command queue and a two-buffer flip-discard swap chain are created for the window.
-5. Each frame waits for the selected frame resource, resets its command allocator, records a back-buffer transition and clear, executes the command list, and presents.
-6. A D3D12 fence tracks GPU completion before command allocators or swap-chain buffers are reused.
+1. Engine creates the Win32 window and initializes the D3D12 renderer.
+2. DXGI enumerates hardware adapters and creates the D3D12 device.
+3. Renderer creates a direct command queue, a two-buffer swap chain, per-frame command allocators, and a fence.
+4. Renderer creates RTV/DSV heaps, swap-chain render targets, and a D32 depth buffer.
+5. DXC compiles mesh_vs.hlsl and mesh_ps.hlsl to shader-model 6.0 DXIL binaries.
+6. Renderer creates a root signature with one root CBV and a graphics PSO with position, normal, and color vertex inputs.
+7. A built-in indexed cube is stored in vertex/index upload buffers for this bootstrap milestone.
+8. Each frame waits for the frame fence, updates that frame's constant buffer, transitions the back buffer, clears color/depth, binds the pipeline and geometry, draws 36 indices, transitions to PRESENT, and presents.
+9. Window resize waits for GPU idle, resizes swap-chain buffers, and recreates the depth resource.
 
-## Current modules
+## Current source map
 
-- Public engine entry: `include/fx3/engine.hpp`
-- Runtime and Win32 window procedure: `src/engine.cpp`
-- Windows GUI entry point: `src/main.cpp`
-- Build configuration: `CMakeLists.txt`
+- include/fx3/engine.hpp — public engine configuration and entry point
+- src/main.cpp — Windows GUI entry point
+- src/engine.cpp — initial Win32 runtime and D3D12 renderer implementation
+- shaders/mesh_vs.hlsl — world/view-projection transform
+- shaders/mesh_ps.hlsl — directional diffuse lighting
+- CMakeLists.txt — C++20 build and DXC shader compilation
 
-## Current limitations
+## Important implementation notes
 
-This is a bootstrap renderer, not a complete production engine. It currently has no shader pipeline, geometry buffers, descriptor allocator abstraction, resource state tracker, frame graph, input abstraction, asset pipeline, ECS, audio, physics, editor, or game layer. Those systems should be added behind stable interfaces in later milestones.
+- Constant buffers are allocated per frame and aligned to 256 bytes.
+- Frame allocator reuse is guarded by per-frame fence values.
+- Depth is D32_FLOAT and is recreated when the client area changes size.
+- The sample cube rotates continuously so that depth testing and 3D transforms are visible immediately.
+- The first milestone uses upload-heap geometry buffers for simplicity. A later version should add default-heap resources and explicit upload/copy commands.
 
-## Next milestones
+## Deliberate omissions
 
-- 0.2: logging/assertions, platform abstraction, input events, renderer interfaces
-- 0.3: GPU resource wrappers, descriptor allocation, upload buffers, barriers
-- 0.4: HLSL/DXC shader compilation and pipeline state management
-- 0.5: vertex/index buffers, depth buffer, camera, indexed draw
-- 0.6: render graph foundation, profiling markers, GPU timing
+This milestone is a 3D renderer proof of foundation, not a complete engine. It has no general scene graph, user camera controller, mesh importer, texture/material system, descriptor allocator, render graph, ECS, physics, audio, or editor. These should be introduced as reusable engine modules rather than game-specific code.
+
+## Suggested next milestones
+
+- 0.3: renderer/backend separation, GPU resource wrappers, default-heap geometry, upload staging, descriptor allocator
+- 0.4: material system, shader reflection, texture resources and sampler management
+- 0.5: camera/input abstraction, reusable mesh and scene interfaces, model import
+- 0.6: render graph foundation, GPU profiling, debug markers, resize/minimize hardening
