@@ -467,7 +467,7 @@ private:
         }
         pso.SampleMask = UINT_MAX;
         pso.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        pso.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+        pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
         pso.RasterizerState.FrontCounterClockwise = FALSE;
         pso.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
         pso.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
