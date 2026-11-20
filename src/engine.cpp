@@ -507,7 +507,6 @@ private:
         FrameConstants constants{};
         XMStoreFloat4x4(&constants.world, world);
         XMStoreFloat4x4(&constants.view_projection, view * projection);
-        constants.light_direction = XMFLOAT4(-0.45f, 0.8f, -0.35f, 0.0f);
         std::memcpy(mapped_constants_[frame_index_], &constants, sizeof(constants));
     }
 
