@@ -13,6 +13,7 @@
 #include <iterator>
 #include <cstdint>
 #include <fstream>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -35,18 +36,18 @@ constexpr UINT kConstantBufferAlignment = 256;
 }
 
 std::vector<std::byte> ReadBinaryFile(const std::wstring& path) {
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    std::ifstream file{std::filesystem::path(path), std::ios::binary | std::ios::ate};
     if (!file) {
         throw std::runtime_error("Unable to open compiled shader: " +
                                  std::string(path.begin(), path.end()));
     }
-    const auto size = file.tellg();
+    const auto size = static_cast<std::streamsize>(file.tellg());
     if (size <= 0) {
         throw std::runtime_error("Compiled shader is empty");
     }
     std::vector<std::byte> data(static_cast<size_t>(size));
     file.seekg(0, std::ios::beg);
-    file.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(size));
+    file.read(reinterpret_cast<char*>(data.data()), size);
     if (!file) {
         throw std::runtime_error("Failed to read compiled shader");
     }
