@@ -8,6 +8,9 @@
 
 #include <array>
 #include <cstddef>
+#include <cmath>
+#include <cstring>
+#include <iterator>
 #include <cstdint>
 #include <fstream>
 #include <stdexcept>
@@ -43,7 +46,7 @@ std::vector<std::byte> ReadBinaryFile(const std::wstring& path) {
     }
     std::vector<std::byte> data(static_cast<size_t>(size));
     file.seekg(0, std::ios::beg);
-    file.read(reinterpret_cast<char*>(data.data()), size);
+    file.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(size));
     if (!file) {
         throw std::runtime_error("Failed to read compiled shader");
     }
