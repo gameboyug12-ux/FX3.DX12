@@ -2,7 +2,6 @@ cbuffer FrameConstants : register(b0)
 {
     row_major float4x4 World;
     row_major float4x4 ViewProjection;
-    float4 LightDirection;
 };
 
 struct VSInput
