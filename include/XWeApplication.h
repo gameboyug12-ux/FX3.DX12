@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include <stdint.h>\n#include <wchar.h>
 
 #if defined(_WIN32)
   #if defined(XWE_BUILD_DLL)
