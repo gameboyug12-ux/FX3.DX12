@@ -1,124 +1,55 @@
-FX3.DX12 0.3.4 — XWe Java API
-================================
+XWe 0.3.5 — Java Panama API
+===========================
 
-Location:
-  src/xwe/java/api/java.txt
+Status
+------
+Implemented Java 22+ Foreign Function & Memory API bindings are provided as
+Java source files in this directory. This file remains a concise API index.
 
-Purpose
--------
-This file defines the Java-facing API contract for applications that want to
-launch and control the XWe engine. The native engine remains C++/Direct3D 12.
-Java is an application-integration layer; it does not replace the renderer.
+Package: xwe.java.api
+Platform: Windows x64
+Native library: xwe_engine.dll
+Interop: java.lang.foreign (JDK 22+); JNI is not used.
 
-Compatibility target
---------------------
-- Java 22 or newer.
-- Java Foreign Function & Memory API (java.lang.foreign).
-- Windows 10/11 x64.
-- xwe_engine.dll and its dependent runtime files must be available to the
-  Windows loader.
-- The native ABI is declared in include/XWeApplication.h.
+Public classes
+--------------
+XWeApplicationDesc
+  Immutable title, width, height and debug-layer configuration.
 
-Native ABI currently exported
------------------------------
+XWeApplication
+  static XWeApplication create(XWeApplicationDesc desc)
+  int run()
+  boolean isOpen()
+  void close()
+  Implements AutoCloseable. Owns the native handle and keeps the UTF-16
+  title allocation alive until XWeDestroyApplication has completed.
+
+XWeVersion
+  static String get()
+
+XWeException
+  Runtime exception for native library loading and downcall failures.
+
+Native ABI
+----------
 XWeApplicationHandle XWeCreateApplication(const XWeApplicationDesc* desc);
 int32_t XWeRunApplication(XWeApplicationHandle application);
 void XWeDestroyApplication(XWeApplicationHandle application);
 const wchar_t* XWeGetVersion(void);
 
-Java package layout (planned)
------------------------------
-xwe.java.api
-  XWeApplication       Owns one native application handle.
-  XWeApplicationDesc   Immutable startup configuration.
-  XWeVersion           Reads the native engine version.
-  XWeException         Reports native loading and lifecycle failures.
+The FFM struct layout matches the Windows x64 ABI: 32-byte structure,
+pointer at offset 8, and 16-bit wchar_t title storage. The Java wrapper
+retains the Arena for the full native application lifetime because Engine
+stores the title pointer until the Win32 window is created.
 
-Public Java API contract
-------------------------
-XWeApplicationDesc
-  constructor(title, width, height, enableDebugLayer)
-  title: non-null Java String
-  width: positive integer
-  height: positive integer
-  enableDebugLayer: boolean
+Build
+-----
+javac --release 22 -d build\java src\xwe\java\api\*.java
 
-XWeApplication
-  static XWeApplication create(XWeApplicationDesc desc)
-      Creates the native instance through XWeCreateApplication.
-      Throws XWeException if the DLL cannot be loaded or creation fails.
+Run with:
+java --enable-native-access=ALL-UNNAMED
+     -Dxwe.library="C:\path\to\xwe_engine.dll"
+     -cp build\java YourGameMainClass
 
-  int run()
-      Calls XWeRunApplication.
-      Must be called from the application's designated main thread.
-      Returns the native process/event-loop result.
-
-  void close()
-      Calls XWeDestroyApplication exactly once.
-      Safe to call repeatedly; later calls do nothing.
-
-  boolean isOpen()
-      True while the Java wrapper owns a live native handle.
-
-XWeVersion
-  static String get()
-      Reads XWeGetVersion and converts the returned UTF-16 string.
-
-Lifecycle example (API design)
-------------------------------
-XWeApplicationDesc desc =
-    new XWeApplicationDesc("My XWe Game", 1600, 900, true);
-
-try (XWeApplication app = XWeApplication.create(desc)) {
-    int exitCode = app.run();
-}
-
-Native interop rules
---------------------
-1. Use the Java 22+ Foreign Function & Memory API to bind the four C ABI
-   exports; do not call C++ class methods directly.
-2. Map XWeApplicationHandle to MemorySegment.
-3. Map XWeApplicationDesc using a native-layout struct matching the exact
-   field order, widths, and alignment in include/XWeApplication.h:
-     uint32_t struct_size
-     const wchar_t* window_title
-     uint32_t window_width
-     uint32_t window_height
-     uint32_t enable_debug_layer
-4. Keep the Arena and UTF-16 title memory alive until after
-   XWeDestroyApplication. The native EngineConfig stores the title pointer
-   and consumes it when XWeRunApplication creates the Win32 window.
-5. wchar_t is 16 bits on Windows. Use a UTF-16-compatible native layout.
-6. Always destroy a successfully created native handle, including when
-   run() returns a non-zero code or throws.
-7. Never invoke close() concurrently with run().
-8. Do not expose native pointers as ordinary Java long values in the public
-   API. Keep them encapsulated in the wrapper.
-9. Native library loading errors, null handles, and non-zero native results
-   must become descriptive XWeException messages.
-
-Current implementation status in 0.3.4
---------------------------------------
-This file is the Java API specification only. It does not claim that Java
-classes, Panama bindings, JNI code, or Java build tooling are implemented.
-The existing native exports are the source of truth. A later implementation
-step must add Java source files, a module/build configuration, native
-downcalls, and Windows integration tests before this API can be described as
-implemented.
-
-Build/native dependency
------------------------
-Build the native engine from the repository root:
-
-  cmake -S . -B build -A x64
-  cmake --build build --config Debug
-
-The Java application must load xwe_engine.dll from the build output directory
-(or another directory configured in java.library.path / the Windows loader
-search path). Keep dependent DLLs alongside it as required.
-
-Versioning
-----------
-Java API specification version: 0.3.4
-Native engine ABI baseline: XWeApplication.h from release/0.3.3
-Breaking changes to the native C ABI require a matching update to this file.
+See docs/0.3.5-JAVA-PANAMA-AND-PSO-API.md for the full interop and lifecycle
+contract.
