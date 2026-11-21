@@ -1,83 +1,44 @@
 # FX3.DX12
 
+## 0.3.7 — Standalone Qt editor and hardware DXR viewport
+
+- Added a separate native `FX3Editor.exe` application built with Qt 6 Widgets and C++20.
+- Added Blender-inspired workspace foundations: central 3D viewport, Scene Outliner, Properties and Console docks.
+- Added a native Win32 viewport with a Direct3D 12 swap chain.
+- Added a hardware DXR test renderer: triangle BLAS/TLAS, ray-tracing state object, shader binding table, `DispatchRays` into a UAV texture, and presentation through the DXGI swap chain.
+- The editor is a separate executable; it does not replace or embed itself in `main.exe`.
+
+See `docs/0.3.7-EDITOR-AND-DXR.md` for build instructions and limitations.
+
 ## 0.3.6 — DX12 object model and raytracing API
 
-- Added the eight requested public DX12 objects under `XWe::DX::DX12`, each
-  with its own header, plus an umbrella `DX12.hpp`.
-- Added DX12 context, fence-safe single-list submission, graphics/compute/
-  stream PSO object, renderer state, renderer API, textures, material,
-  shader bytecode and GBuffer resources/views/transitions.
-- Added a starter DXR API: BLAS/TLAS builders, raytracing state object,
-  aligned shader binding table and descriptor-bound `DispatchRays`.
-- Updated the path-tracing shader to write its result to a UAV texture.
-- Bumped CMake and native DLL version to 0.3.6.
+- Added the eight requested public DX12 objects under `XWe::DX::DX12`, each with its own header, plus an umbrella `DX12.hpp`.
+- Added DX12 context, command submission, graphics/compute/stream PSO objects, renderer state, textures, materials, shader bytecode and GBuffer resources.
+- Added BLAS/TLAS builders, a DXR state-object API, shader binding table and descriptor-bound `DispatchRays`.
 
-See `docs/0.3.6-DX12-OBJECT-MODEL-AND-RT-API.md` for object responsibilities,
-RT workflow, ownership rules and current limitations. This is an API and
-implementation foundation; the existing sample renderer does not yet execute
-the new DXR dispatch path automatically.
+## Earlier releases
 
-## 0.3.5 — XWe standard API, Java Panama and PSO foundation
+- **0.3.5:** Java 22+ Panama FFM bindings, XWe public headers and PSO caching.
+- **0.3.4:** Java API specification.
+- **0.3.3:** DX12 feature probing, DXR state-object foundation and PSO cache.
+- **0.3.2:** PySide6 editor prototype and XWe C ABI.
 
-- Implemented Java 22+ Panama FFM bindings for `xwe_engine.dll` (no JNI).
-- Added `XWeApplication`, `XWeApplicationDesc`, `XWeVersion` and `XWeException`.
-- Kept the UTF-16 window title Arena alive for the complete native application lifetime.
-- Migrated engine C++ namespace from `fx3` to `XWe`; DX12 APIs use `XWe::DX12`.
-- Added canonical public headers under `include/XWe`.
-- Added graphics, compute and pipeline-state-stream PSO caching through
-  `XWe::DX12::PipelineStateCache`.
-- Preserved legacy `include/fx3` header paths as forwarding headers only.
+## Build requirements
 
-FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
-
-## 0.3.4 — XWe Java API specification
-
-- Added `src/xwe/java/api/java.txt` with the Java-facing API contract.
-- Defines Java 22+ Foreign Function & Memory (Panama) integration with the existing XWe C ABI.
-- Bumped CMake project and exported `XWeGetVersion()` to 0.3.4.
-- Java classes and native downcalls are specified, not yet implemented.
-
-## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache
-
-- DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)
-- DXC ray-tracing library build (`lib_6_3`) and native DXR state-object creation when supported
-- Reusable keyed graphics PSO cache
-- Raster fallback remains active; full path-tracing dispatch is not yet implemented
-
-## 0.3.2 — Fullscreen editor and XWe application DLL
-
-- Fullscreen PySide6 editor (F11 toggles fullscreen)
-- C++17-oriented source editor with syntax highlighting, tabs, open and save
-- OBJ preview and Object Inspector with position, rotation and scale controls
-- Engine executable launcher (F5)
-- Public C ABI in `include/XWeApplication.h`
-- Native engine DLL target: `xwe_engine.dll`
-- Executable output remains named `main.exe`
-
-## Run the editor
+- Windows 10/11 x64, Visual Studio 2022 with Desktop C++ workload and Windows SDK.
+- CMake 3.24+, DXC available on PATH.
+- Qt 6.5+ Widgets for MSVC 2022; set `CMAKE_PREFIX_PATH` to the Qt installation.
+- A DXR-capable GPU and current graphics driver to run the ray-traced viewport.
 
 ```powershell
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r editor\requirements.txt
-python editor\main.py
+cmake -S . -B build -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64"
+cmake --build build --config Release
 ```
 
-The default executable is `C:/XWe0.2/bulid/main.exe`; choose the current build using File > Set engine executable.
+The build produces `build/bin/FX3Editor.exe`, `build/bin/main.exe` and `build/bin/xwe_engine.dll`. The editor and engine are separate applications/targets.
 
-## Build the engine DLL and executable
+## DXR scope
 
-```powershell
-cmake -S . -B build -A x64
-cmake --build build --config Debug
-```
+The viewport traces a hard-coded triangle to validate the DXR dispatch-and-present path. The Outliner and transform controls are UI foundations and are not yet connected to editable scene objects or dynamic acceleration-structure rebuilds. This is not yet a full Blender-equivalent editor or a production path tracer. Mesh import, camera navigation, selection, manipulators, material editing, multi-bounce lighting, accumulation, denoising, render graph and FSR integration remain future work.
 
-The build produces `main.exe` and `xwe_engine.dll` in the build output directory. Keep the DLL beside the executable.
-
-## XWe DLL API
-
-Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`. The Java implementation is in `src/xwe/java/api`; see `docs/0.3.5-JAVA-PANAMA-AND-PSO-API.md`.
-
-## Rendering status
-
-The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The 0.3.3 runtime probes optional DX12 features and creates a DXR state object on capable adapters. Version 0.3.6 adds public APIs for BLAS/TLAS builds, shader binding tables, UAV output and DispatchRays, but the existing sample cube renderer does not automatically execute that path. The current editor viewport remains an OpenGL preview. Native FSR 3.1 still requires the AMD FidelityFX SDK and full D3D12 integration. Full multi-bounce path tracing, accumulation, denoising and presentation are future work.
+The Python editor files remain as a legacy prototype; the new native editor is under `editor/cpp`.
