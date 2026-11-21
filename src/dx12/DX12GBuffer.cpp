@@ -12,7 +12,7 @@ HRESULT DX12GBuffer::Create(DX12Ctx& context,UINT width,UINT height) noexcept {
         if(FAILED(hr)) return hr;
     }
     DX12Texture depth;
-    HRESULT hr=depth.Create2D(context.Device(),width,height,DXGI_FORMAT_D32_FLOAT,
+    HRESULT hr=depth.Create2D(context.Device(),width,height,DXGI_FORMAT_R32_TYPELESS,
         D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,D3D12_RESOURCE_STATE_DEPTH_WRITE);
     if(FAILED(hr)) return hr;
     targets_=std::move(created); depth_=std::move(depth); width_=width; height_=height;
@@ -26,7 +26,10 @@ HRESULT DX12GBuffer::CreateViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDL
         target.CreateRTV(device,rtv); rtv.ptr+=increment;
     }
     if(!depth_) return E_UNEXPECTED;
-    depth_.CreateDSV(device,dsv); return S_OK;
+    D3D12_DEPTH_STENCIL_VIEW_DESC depth_dsv{};
+    depth_dsv.Format=DXGI_FORMAT_D32_FLOAT;
+    depth_dsv.ViewDimension=D3D12_DSV_DIMENSION_TEXTURE2D;
+    depth_.CreateDSV(device,dsv,&depth_dsv); return S_OK;
 }
 HRESULT DX12GBuffer::TransitionTargets(ID3D12GraphicsCommandList* list,
     D3D12_RESOURCE_STATES before,D3D12_RESOURCE_STATES after) const noexcept {
