@@ -45,4 +45,4 @@ Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engin
 
 ## Rendering status
 
-The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The 0.3.3 runtime probes optional DX12 features and compiles a DXR shader library; it still does not build acceleration structures or dispatch path-tracing rays. The current viewport is an editor-side OpenGL preview. Native FSR 3.1 requires the AMD FidelityFX SDK, D3D12 render integration, depth, motion vectors, jitter and frame pacing. DXR/PT are also not represented as completed in this milestone.
+The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The 0.3.3 runtime probes optional DX12 features and compiles a DXR shader library; it still does not build acceleration structures or dispatch path-tracing rays. The current viewport is an editor-side OpenGL preview. Native FSR 3.1 requires the AMD FidelityFX SDK, D3D12 render integration, depth, motion vectors, jitter and frame pacing. Full DXR path tracing is not yet completed in this milestone.
