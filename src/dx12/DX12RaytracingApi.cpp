@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <vector>
 #include <iterator>
+#include <cstddef>
 
 namespace XWe::DX::DX12 {
 HRESULT DX12RaytracingApi::Initialize(ID3D12Device* device) noexcept {
