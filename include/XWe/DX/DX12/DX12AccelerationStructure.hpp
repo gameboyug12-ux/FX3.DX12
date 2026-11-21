@@ -15,7 +15,7 @@ public:
             D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE) noexcept;
     ID3D12Resource* Result() const noexcept { return result_.Get(); }
     D3D12_GPU_VIRTUAL_ADDRESS Address() const noexcept { return result_ ? result_->GetGPUVirtualAddress() : 0; }
-    void Reset() noexcept { result_.Reset(); scratch_.Reset(); }
+    void Reset() noexcept { result_.Reset(); scratch_.Reset(); instance_upload_.Reset(); }
 private:
     HRESULT AllocateBuffer(ID3D12Device* device, UINT64 size, D3D12_RESOURCE_STATES state,
                            Microsoft::WRL::ComPtr<ID3D12Resource>& output) noexcept;
