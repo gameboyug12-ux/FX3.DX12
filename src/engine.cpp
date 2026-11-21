@@ -1,4 +1,4 @@
-#include "fx3/engine.hpp"
+#include "fx3/engine.hpp"\n#include "fx3/dx12_features.hpp"\n#include "fx3/pso_cache.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -543,7 +543,7 @@ private:
     ComPtr<ID3D12GraphicsCommandList> command_list_;
     ComPtr<ID3D12Fence> fence_;
     ComPtr<ID3D12RootSignature> root_signature_;
-    ComPtr<ID3D12PipelineState> pipeline_;
+    ComPtr<ID3D12PipelineState> pipeline_;\n    GraphicsPsoCache pso_cache_;
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> constant_buffers_{};
