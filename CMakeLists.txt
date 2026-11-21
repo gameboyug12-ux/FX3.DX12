@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.7 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.8 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "XWe currently supports Windows only.")
@@ -94,21 +94,23 @@ target_compile_features(FX3DX12 PRIVATE cxx_std_20)
 target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX $<$<CONFIG:Debug>:XWE_DEBUG>)
 target_link_libraries(FX3DX12 PRIVATE xwe_engine)
 
-# Standalone Qt editor; separate from the engine main executable.
+# Standalone Qt editor; separate from the engine executable.
 qt_add_executable(FX3Editor MANUAL_FINALIZATION WIN32
     editor/cpp/main.cpp
     editor/cpp/MainWindow.cpp
     editor/cpp/MainWindow.hpp
+    editor/cpp/SceneDocument.cpp
+    editor/cpp/SceneDocument.hpp
     editor/cpp/DXRViewport.cpp
     editor/cpp/DXRViewport.hpp
 )
 add_dependencies(FX3Editor XWeShaders)
 target_compile_features(FX3Editor PRIVATE cxx_std_20)
 target_compile_definitions(FX3Editor PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
-target_compile_definitions(FX3Editor PRIVATE "XWE_SHADER_DIR=L\"${XWE_SHADER_OUTPUT_DIR}\"")
+target_compile_definitions(FX3Editor PRIVATE "XWE_SHADER_DIR=L\""${XWE_SHADER_OUTPUT_DIR}\""")
 target_link_libraries(FX3Editor PRIVATE Qt6::Widgets d3d12 dxgi dxguid)
 qt_finalize_executable(FX3Editor)
-# Java sources are kept visible to IDEs; the native engine does not require a JDK.
+
 set(XWE_JAVA_API_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeApplication.java
     ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeApplicationDesc.java
