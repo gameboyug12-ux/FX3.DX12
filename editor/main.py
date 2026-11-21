@@ -59,9 +59,9 @@ class CppHighlighter(QSyntaxHighlighter):
             self.rules.append((QRegularExpression(pattern),fmt))
         keywords=r"\b(auto|bool|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|extern|false|float|for|friend|if|inline|int|long|namespace|new|nullptr|override|private|protected|public|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typename|union|unsigned|using|virtual|void|volatile|while)\b"
         rule(keywords,"#c792ea",True)
-        rule(r"\\b(std|string|vector|array|unique_ptr|shared_ptr|uint32_t|uint64_t|HRESULT|HWND)\\b","#82aaff")
-        rule(r"\\b[A-Z_][A-Z0-9_]{2,}\\b","#ffcb6b")
-        rule(r"\\b[0-9]+(\\.[0-9]+)?[fFuUlL]*\\b","#f78c6c")
+        rule(r"\b(std|string|vector|array|unique_ptr|shared_ptr|uint32_t|uint64_t|HRESULT|HWND)\b","#82aaff")
+        rule(r"\b[A-Z_][A-Z0-9_]{2,}\b","#ffcb6b")
+        rule(r"\b[0-9]+(\.[0-9]+)?[fFuUlL]*\b","#f78c6c")
         rule(r'"([^"\\]|\\.)*"',"#c3e88d")
         rule(r"'([^'\\]|\\.)*'","#c3e88d")
         rule(r"//[^\n]*","#697386")
