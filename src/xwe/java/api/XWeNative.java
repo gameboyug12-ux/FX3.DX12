@@ -28,6 +28,10 @@ final class XWeNative {
 
     static {
         try {
+            if (!System.getProperty("os.name", "").startsWith("Windows")
+                    || ADDRESS.byteSize() != 8 || APPLICATION_DESC.byteSize() != 32) {
+                throw new XWeException("XWe Panama bindings require the Windows x64 ABI.");
+            }
             String configured = System.getProperty("xwe.library");
             Path library = configured == null || configured.isBlank()
                 ? Path.of("xwe_engine.dll").toAbsolutePath()
