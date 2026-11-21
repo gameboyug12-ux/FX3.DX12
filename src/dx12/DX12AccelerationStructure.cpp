@@ -1,5 +1,6 @@
 #include "XWe/DX/DX12/DX12AccelerationStructure.hpp"
 #include <cstring>
+#include <cstddef>
 
 namespace XWe::DX::DX12 {
 HRESULT DX12AccelerationStructure::AllocateBuffer(ID3D12Device* device, UINT64 size,
