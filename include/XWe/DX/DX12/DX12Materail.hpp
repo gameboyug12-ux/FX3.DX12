@@ -17,4 +17,5 @@ private:
     std::shared_ptr<DX12Shader> shader_;
     std::vector<std::shared_ptr<DX12Texture>> textures_;
 };
+using DX12Material = DX12Materail;
 }
