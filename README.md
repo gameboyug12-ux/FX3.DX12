@@ -1,40 +1,55 @@
 # FX3.DX12
 
-FX3.DX12 is a standalone renderer and game-engine foundation. This repository contains engine and renderer code only; game-specific source code belongs in a separate game project.
+FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
 
-## Initial target
+## 0.3.4 — XWe Java API specification
 
-- Windows 10/11 x64
-- C++20
-- Win32 platform layer
-- Direct3D 12 / DXGI renderer
-- HLSL shaders compiled with DXC
-- CMake build system
+- Added `src/xwe/java/api/java.txt` with the Java-facing API contract.
+- Defines Java 22+ Foreign Function & Memory (Panama) integration with the existing XWe C ABI.
+- Bumped CMake project and exported `XWeGetVersion()` to 0.3.4.
+- Java classes and native downcalls are specified, not yet implemented.
 
-## Development status
+## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache
 
-Early development. The first milestone (`0.1.0`) establishes the engine application shell, Win32 window, D3D12 device and command queue lifecycle, swap chain, frame synchronization, and a minimal renderer loop. It is not yet a production-ready engine.
+- DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)
+- DXC ray-tracing library build (`lib_6_3`) and native DXR state-object creation when supported
+- Reusable keyed graphics PSO cache
+- Raster fallback remains active; full path-tracing dispatch is not yet implemented
 
-## Repository layout
+## 0.3.2 — Fullscreen editor and XWe application DLL
 
-- `include/fx3/` — public engine headers
-- `src/core/` — engine lifecycle, logging, and core utilities
-- `src/platform/` — Win32 window and input layer
-- `src/rhi/d3d12/` — Direct3D 12 backend
-- `src/renderer/` — renderer orchestration and frame lifecycle
-- `shaders/` — HLSL source
-- `docs/` — architecture and development notes
-- `tests/` — automated tests
+- Fullscreen PySide6 editor (F11 toggles fullscreen)
+- C++17-oriented source editor with syntax highlighting, tabs, open and save
+- OBJ preview and Object Inspector with position, rotation and scale controls
+- Engine executable launcher (F5)
+- Public C ABI in `include/XWeApplication.h`
+- Native engine DLL target: `xwe_engine.dll`
+- Executable output remains named `main.exe`
 
-## Build requirements
+## Run the editor
 
-- Visual Studio 2022 (MSVC) or compatible MSVC toolchain
-- Windows 10/11 SDK with Direct3D 12 headers and libraries
-- CMake 3.24 or newer
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r editor\requirements.txt
+python editor\main.py
+```
+
+The default executable is `C:/XWe0.2/bulid/main.exe`; choose the current build using File > Set engine executable.
+
+## Build the engine DLL and executable
 
 ```powershell
 cmake -S . -B build -A x64
 cmake --build build --config Debug
 ```
 
-No game-specific gameplay code or game assets are included.
+The build produces `main.exe` and `xwe_engine.dll` in the build output directory. Keep the DLL beside the executable.
+
+## XWe DLL API
+
+Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`. The Java integration contract is in `src/xwe/java/api/java.txt`.
+
+## Rendering status
+
+The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The 0.3.3 runtime probes optional DX12 features and creates a DXR state object on capable adapters; it still does not build acceleration structures or dispatch path-tracing rays. The current viewport is an editor-side OpenGL preview. Native FSR 3.1 requires the AMD FidelityFX SDK, D3D12 render integration, depth, motion vectors, jitter and frame pacing. Full DXR path tracing is not yet completed in this milestone.
