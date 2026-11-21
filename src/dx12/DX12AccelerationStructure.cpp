@@ -17,6 +17,7 @@ HRESULT DX12AccelerationStructure::BuildBottomLevel(ID3D12Device5* device,
     ID3D12GraphicsCommandList4* list,const D3D12_RAYTRACING_GEOMETRY_DESC* geometries,
     UINT count,D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS flags) noexcept {
     if(!device || !list || !geometries || !count) return E_INVALIDARG;
+    result_.Reset(); scratch_.Reset();
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
     inputs.Type=D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
     inputs.DescsLayout=D3D12_ELEMENTS_LAYOUT_ARRAY; inputs.NumDescs=count;
@@ -40,6 +41,7 @@ HRESULT DX12AccelerationStructure::BuildTopLevel(ID3D12Device5* device,
     ID3D12GraphicsCommandList4* list,const D3D12_RAYTRACING_INSTANCE_DESC* instances,
     UINT count,D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS flags) noexcept {
     if(!device || !list || !instances || !count) return E_INVALIDARG;
+    result_.Reset(); scratch_.Reset(); instance_upload_.Reset();
     const UINT64 bytes=static_cast<UINT64>(sizeof(D3D12_RAYTRACING_INSTANCE_DESC))*count;
     D3D12_HEAP_PROPERTIES upload{}; upload.Type=D3D12_HEAP_TYPE_UPLOAD; upload.CreationNodeMask=1; upload.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC buffer{}; buffer.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER;
