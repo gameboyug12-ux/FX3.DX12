@@ -46,6 +46,13 @@ HRESULT DX12GBuffer::CreateShaderViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR
         desc.Shader4ComponentMapping=D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         desc.Texture2D.MipLevels=1; target.CreateSRV(device,srv,&desc); srv.ptr+=increment;
     }
+    if(!depth_) return E_UNEXPECTED;
+    D3D12_SHADER_RESOURCE_VIEW_DESC depth_srv{};
+    depth_srv.Format=DXGI_FORMAT_R32_FLOAT;
+    depth_srv.ViewDimension=D3D12_SRV_DIMENSION_TEXTURE2D;
+    depth_srv.Shader4ComponentMapping=D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    depth_srv.Texture2D.MipLevels=1;
+    depth_.CreateSRV(device,srv,&depth_srv);
     return S_OK;
 }
 void DX12GBuffer::Reset() noexcept {
