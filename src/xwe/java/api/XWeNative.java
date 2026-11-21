@@ -2,7 +2,6 @@ package xwe.java.api;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import static java.lang.foreign.ValueLayout.*;
