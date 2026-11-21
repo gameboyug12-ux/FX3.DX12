@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-namespace fx3 {
+namespace XWe {
 
 enum class AntiAliasingMode : std::uint32_t {
     None = 0,
@@ -38,4 +38,4 @@ struct RenderFeatureConfig {
     std::uint32_t render_height = 0;
 };
 
-} // namespace fx3
+} // namespace XWe
