@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace fx3 {
+namespace XWe {
 
 struct EngineConfig {
     const wchar_t* window_title = L"FX3.DX12";
@@ -28,4 +28,4 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-} // namespace fx3
+} // namespace XWe
