@@ -53,12 +53,13 @@ target_compile_features(xwe_engine PUBLIC cxx_std_20)
 target_compile_definitions(xwe_engine PRIVATE
     XWE_BUILD_DLL
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
-    FX3_SHADER_DIR=L"\"${FX3_SHADER_OUTPUT_DIR}\""
+    FX3_SHADER_DIR=L\"${FX3_SHADER_OUTPUT_DIR}\"
     $<$<CONFIG:Debug>:FX3_DEBUG>
 )
 target_link_libraries(xwe_engine PRIVATE d3d12 dxgi dxguid)
 
-add_executable(FX3DX12 WIN32 src/main.cpp)\nset_target_properties(FX3DX12 PROPERTIES OUTPUT_NAME "main")
+add_executable(FX3DX12 WIN32 src/main.cpp)
+set_target_properties(FX3DX12 PROPERTIES OUTPUT_NAME "main")
 target_include_directories(FX3DX12 PRIVATE include)
 target_compile_features(FX3DX12 PRIVATE cxx_std_20)
 target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
