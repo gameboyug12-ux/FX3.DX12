@@ -32,8 +32,8 @@ public final class XWeApplication implements AutoCloseable {
 
     /** Runs the native Win32/D3D12 event loop on the calling thread. */
     public int run() {
-        if (!open.get()) throw new IllegalStateException("XWe application is closed.");
         synchronized (this) {
+            if (!open.get()) throw new IllegalStateException("XWe application is closed.");
             if (running) throw new IllegalStateException("XWe application is already running.");
             running = true;
         }
