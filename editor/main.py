@@ -57,14 +57,14 @@ class CppHighlighter(QSyntaxHighlighter):
             fmt=QTextCharFormat(); fmt.setForeground(QColor(color))
             if bold: fmt.setFontWeight(QFont.Bold)
             self.rules.append((QRegularExpression(pattern),fmt))
-        keywords=r"\\b(auto|bool|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|extern|false|float|for|friend|if|inline|int|long|namespace|new|nullptr|override|private|protected|public|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typename|union|unsigned|using|virtual|void|volatile|while)\\b"
+        keywords=r"\b(auto|bool|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|extern|false|float|for|friend|if|inline|int|long|namespace|new|nullptr|override|private|protected|public|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typename|union|unsigned|using|virtual|void|volatile|while)\b"
         rule(keywords,"#c792ea",True)
         rule(r"\\b(std|string|vector|array|unique_ptr|shared_ptr|uint32_t|uint64_t|HRESULT|HWND)\\b","#82aaff")
         rule(r"\\b[A-Z_][A-Z0-9_]{2,}\\b","#ffcb6b")
         rule(r"\\b[0-9]+(\\.[0-9]+)?[fFuUlL]*\\b","#f78c6c")
         rule(r'"([^"\\]|\\.)*"',"#c3e88d")
         rule(r"'([^'\\]|\\.)*'","#c3e88d")
-        rule(r"//[^\\n]*","#697386")
+        rule(r"//[^\n]*","#697386")
     def highlightBlock(self,text):
         for regex,fmt in self.rules:
             it=regex.globalMatch(text)
@@ -133,7 +133,7 @@ class Editor(QMainWindow):
         self.viewport=Viewport(self); self.setCentralWidget(self.viewport)
         self._build_scene(); self._build_inspector(); self._build_code(); self._build_output(); self._build_menus()
         self.statusBar().showMessage("FX3 Editor 0.3.2 | F11: toggle fullscreen | F5: launch engine")
-        self.showFullScreen()
+        pass
     def _build_scene(self):
         dock=QDockWidget("Scene Hierarchy",self); self.tree=QTreeWidget(); self.tree.setHeaderLabels(["Object"])
         root=QTreeWidgetItem(["Scene"]); root.addChildren([QTreeWidgetItem(["Camera"]),QTreeWidgetItem(["Directional Light"])])
@@ -157,12 +157,12 @@ class Editor(QMainWindow):
         dock.setWidget(panel); self.addDockWidget(Qt.RightDockWidgetArea,dock)
     def _build_code(self):
         dock=QDockWidget("C++17 Code Editor",self); self.tabs=QTabWidget(); self.tabs.setTabsClosable(True)
-        self.tabs.tabCloseRequested.connect(self._close_tab); dock.setWidget(self.tabs)
+        self.tabs.tabCloseRequested.connect(self._close_tab); dock.setWidget(self.tabs); self.code_dock=dock
         self.addDockWidget(Qt.BottomDockWidgetArea,dock); self.new_code_tab()
     def _build_output(self):
         dock=QDockWidget("Output",self); self.log=QPlainTextEdit(); self.log.setReadOnly(True)
         dock.setWidget(self.log); self.addDockWidget(Qt.BottomDockWidgetArea,dock)
-        self.tabifyDockWidget(self.findChild(QDockWidget,""),dock)
+        self.tabifyDockWidget(self.code_dock,dock)
     def _build_menus(self):
         file=self.menuBar().addMenu("&File")
         self._action(file,"Open OBJ...","Ctrl+O",self.open_obj)
@@ -230,5 +230,5 @@ class Editor(QMainWindow):
 
 def main():
     fmt=QSurfaceFormat(); fmt.setVersion(3,3); fmt.setProfile(QSurfaceFormat.CoreProfile); fmt.setDepthBufferSize(24)
-    QSurfaceFormat.setDefaultFormat(fmt); app=QApplication(sys.argv); editor=Editor(); editor.show(); return app.exec()
+    QSurfaceFormat.setDefaultFormat(fmt); app=QApplication(sys.argv); editor=Editor(); editor.showFullScreen(); return app.exec()
 if __name__=="__main__": raise SystemExit(main())
