@@ -1,18 +1,24 @@
-#include "fx3/engine.hpp"
-
+#include "XWeApplication.h"
 #include <Windows.h>
 
-int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int show_command) {
-    fx3::EngineConfig config{};
-    config.window_title = L"FX3.DX12 | 3D Renderer 0.2.0";
-    config.window_width = 1280;
-    config.window_height = 720;
+int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
+    XWeApplicationDesc desc{};
+    desc.struct_size = sizeof(desc);
+    desc.window_title = L"FX3.DX12 | XWe Engine 0.3.2";
+    desc.window_width = 1600;
+    desc.window_height = 900;
 #ifdef FX3_DEBUG
-    config.enable_debug_layer = true;
+    desc.enable_debug_layer = 1;
 #else
-    config.enable_debug_layer = false;
+    desc.enable_debug_layer = 0;
 #endif
-
-    fx3::Engine engine(config);
-    return engine.Run(instance, show_command);
+    XWeApplicationHandle app = XWeCreateApplication(&desc);
+    if (app == nullptr) {
+        MessageBoxW(nullptr, L"Could not create XWe application.", L"FX3.DX12",
+                    MB_OK | MB_ICONERROR);
+        return 1;
+    }
+    const int result = XWeRunApplication(app);
+    XWeDestroyApplication(app);
+    return result;
 }
