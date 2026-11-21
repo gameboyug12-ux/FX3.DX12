@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <string>
 #include <unordered_map>
-namespace fx3 {
+namespace XWe {
 class GraphicsPsoCache final {
 public:
  ID3D12PipelineState* GetOrCreate(ID3D12Device* device,const std::string& stable_key,const D3D12_GRAPHICS_PIPELINE_STATE_DESC& description);
@@ -13,4 +13,4 @@ public:
 private:
  std::unordered_map<std::string,Microsoft::WRL::ComPtr<ID3D12PipelineState>> entries_;
 };
-} // namespace fx3
+} // namespace XWe
