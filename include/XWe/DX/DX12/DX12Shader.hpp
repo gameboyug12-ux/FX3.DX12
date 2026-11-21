@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <cstddef>
+#include <cstddef>
 #include <filesystem>
 #include <vector>
 
