@@ -5,6 +5,7 @@
 namespace XWe::DX::DX12 {
 HRESULT DX12ShaderBindingTable::Create(ID3D12Device* device,ID3D12StateObjectProperties* props,
     const wchar_t* raygen,const wchar_t* miss,const wchar_t* hit,UINT requested_stride) noexcept {
+    buffer_.Reset(); raygen_={}; miss_={}; hit_={}; dispatch_={};
     if(!device || !props || !raygen || !miss || !hit) return E_INVALIDARG;
     const UINT stride=(std::max)(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES,
         (requested_stride + D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT-1) &
