@@ -81,11 +81,11 @@ target_link_libraries(FX3DX12 PRIVATE xwe_engine)
 
 # Java sources are kept visible to IDEs; the native engine does not require a JDK.
 set(XWE_JAVA_API_SOURCES
-    src/xwe/java/api/XWeApplication.java
-    src/xwe/java/api/XWeApplicationDesc.java
-    src/xwe/java/api/XWeException.java
-    src/xwe/java/api/XWeNative.java
-    src/xwe/java/api/XWeVersion.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeApplication.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeApplicationDesc.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeException.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeNative.java
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeVersion.java
 )
 add_custom_target(XWeJavaApi SOURCES ${XWE_JAVA_API_SOURCES})
 find_package(Java 22 COMPONENTS Development QUIET)
