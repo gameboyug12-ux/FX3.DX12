@@ -35,7 +35,7 @@ cmake -S . -B build -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64"
 cmake --build build --config Release
 ```
 
-The build produces `build/bin/FX3Editor.exe`, `build/bin/main.exe` and `build/bin/xwe_engine.dll`. The editor and engine are separate applications/targets.
+With the Visual Studio multi-configuration generator, Release outputs are placed in `build/bin/Release/`: `FX3Editor.exe`, `main.exe` and `xwe_engine.dll`. The editor and engine are separate applications/targets.
 
 ## DXR scope
 
