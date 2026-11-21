@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cstddef>
+#include <iterator>
 
 namespace fx3 {
 namespace {
@@ -75,13 +76,20 @@ bool DxrPipeline::Initialize(ID3D12Device* device, const std::wstring& path) {
     D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
     pipeline_config.MaxTraceRecursionDepth = 1;
 
-    D3D12_STATE_SUBOBJECT subobjects[5]{};
+    const wchar_t* shader_exports[] = {L"RayGen", L"Miss", L"ClosestHit"};
+    D3D12_STATE_SUBOBJECT subobjects[6]{};
     subobjects[0] = {D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &library_desc};
     subobjects[1] = {D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hit_group};
     subobjects[2] = {D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG, &shader_config};
     ID3D12RootSignature* root_signature = global_root_signature_.Get();
     subobjects[3] = {D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &root_signature};
     subobjects[4] = {D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG, &pipeline_config};
+    D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shader_config_association{};
+    shader_config_association.pSubobjectToAssociate = &subobjects[2];
+    shader_config_association.NumExports = static_cast<UINT>(std::size(shader_exports));
+    shader_config_association.pExports = shader_exports;
+    subobjects[5] = {D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION,
+                     &shader_config_association};
 
     D3D12_STATE_OBJECT_DESC state_desc{};
     state_desc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
