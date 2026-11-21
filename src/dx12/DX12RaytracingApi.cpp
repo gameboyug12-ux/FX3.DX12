@@ -13,6 +13,7 @@ HRESULT DX12RaytracingApi::Initialize(ID3D12Device* device) noexcept {
 }
 HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
     if(!device5_) return E_NOINTERFACE;
+    state_object_.Reset(); properties_.Reset(); global_root_signature_.Reset();
     try {
         std::ifstream file(std::filesystem::path(path),std::ios::binary|std::ios::ate);
         if(!file) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
