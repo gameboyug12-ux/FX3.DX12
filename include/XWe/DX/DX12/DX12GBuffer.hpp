@@ -14,6 +14,8 @@ public:
         UINT srv_increment) const noexcept;
     HRESULT TransitionTargets(ID3D12GraphicsCommandList* command_list,
         D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const noexcept;
+    HRESULT TransitionDepth(ID3D12GraphicsCommandList* command_list,
+        D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const noexcept;
     void Reset() noexcept;
     DX12Texture* Get(DX12GBufferSlot slot) noexcept;
     const DX12Texture* Get(DX12GBufferSlot slot) const noexcept;
