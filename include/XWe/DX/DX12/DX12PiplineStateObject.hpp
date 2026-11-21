@@ -15,4 +15,5 @@ public:
 private:
     Microsoft::WRL::ComPtr<ID3D12PipelineState> state_;
 };
+using DX12PipelineStateObject = DX12PiplineStateObject;
 }
