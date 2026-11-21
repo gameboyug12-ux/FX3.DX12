@@ -1,6 +1,7 @@
 #include "fx3/engine.hpp"
 #include "fx3/dx12_features.hpp"
 #include "fx3/pso_cache.hpp"
+#include "fx3/dxr_pipeline.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -119,6 +120,14 @@ public:
             feature_report.enhanced_barriers ? "yes" : "no",
             feature_report.variable_rate_shading ? "yes" : "no");
         OutputDebugStringA(feature_line);
+        if (features.SupportsDXR()) {
+            const std::wstring dxr_shader = std::wstring(FX3_SHADER_DIR) + L"\\pathtrace.dxil";
+            if (dxr_pipeline_.Initialize(device_.Get(), dxr_shader)) {
+                OutputDebugStringA("[FX3] DXR pipeline state object created.\\n");
+            }
+        } else {
+            OutputDebugStringA("[FX3] DXR unsupported; using raster fallback.\\n");
+        }
 
         const Dx12FeatureReport features = QueryDx12Features(device_.Get());
         char feature_line[256]{};
@@ -570,6 +579,7 @@ private:
     ComPtr<ID3D12RootSignature> root_signature_;
     ComPtr<ID3D12PipelineState> pipeline_;
     GraphicsPsoCache pso_cache_;
+    DxrPipeline dxr_pipeline_;
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> constant_buffers_{};
