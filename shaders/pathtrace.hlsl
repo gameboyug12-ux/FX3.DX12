@@ -1,33 +1,26 @@
-// DXR 1.0 minimal ray-generation pipeline with UAV output.
-struct Payload { float3 radiance; uint hit; };
+// DXR 1.0 single-bounce ray-tracing preview.
+struct Payload { float4 color; };
 RaytracingAccelerationStructure Scene : register(t0);
 RWTexture2D<float4> Output : register(u0);
 
 [shader("raygeneration")]
 void RayGen() {
     uint2 pixel = DispatchRaysIndex().xy;
-    uint2 dimensions = DispatchRaysDimensions().xy;
-    Payload payload;
-    payload.radiance = float3(0, 0, 0);
-    payload.hit = 0;
+    uint2 size = DispatchRaysDimensions().xy;
+    float2 uv = (float2(pixel) + 0.5) / float2(size);
+    float aspect = float(size.x) / max(1.0, float(size.y));
     RayDesc ray;
-    ray.Origin = float3(0, 0, -5);
-    ray.Direction = normalize(float3(
-        (float(pixel.x) / max(1.0, float(dimensions.x)) - 0.5) * 2.0,
-        (0.5 - float(pixel.y) / max(1.0, float(dimensions.y))) * 2.0,
-        1.0));
-    ray.TMin = 0.001;
-    ray.TMax = 10000.0;
+    ray.Origin = float3(0.0, 0.0, -4.0);
+    ray.Direction = normalize(float3((uv.x * 2.0 - 1.0) * aspect, 1.0 - uv.y * 2.0, 1.5));
+    ray.TMin = 0.001; ray.TMax = 10000.0;
+    Payload payload; payload.color = float4(0.035, 0.045, 0.065, 1.0);
     TraceRay(Scene, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray, payload);
-    Output[pixel] = float4(payload.radiance, 1.0);
+    Output[pixel] = payload.color;
 }
 [shader("miss")]
-void Miss(inout Payload payload) {
-    payload.radiance = float3(0.08, 0.12, 0.20);
-    payload.hit = 0;
-}
+void Miss(inout Payload payload) { payload.color = float4(0.035, 0.045, 0.065, 1.0); }
 [shader("closesthit")]
 void ClosestHit(inout Payload payload, BuiltInTriangleIntersectionAttributes attributes) {
-    payload.radiance = float3(0.8, 0.8, 0.8);
-    payload.hit = 1;
+    float shade = saturate(0.45 + 0.55 * (1.0 - attributes.barycentrics.y));
+    payload.color = float4(float3(0.15, 0.62, 0.95) * shade, 1.0);
 }
