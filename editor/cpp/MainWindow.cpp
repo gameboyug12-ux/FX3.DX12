@@ -132,6 +132,8 @@ void MainWindow::createMenus() {
 }
 
 void MainWindow::rebuildOutliner() {
+    const QSignalBlocker treeBlocker(outliner_);
+    if (!scene_.find(selectedObjectId_)) selectedObjectId_.clear();
     outliner_->clear();
     auto* root = new QTreeWidgetItem(outliner_, {QStringLiteral("Scene")});
     for (const SceneDocument::Object& object : scene_.objects()) {
