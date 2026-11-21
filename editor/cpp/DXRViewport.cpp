@@ -15,6 +15,8 @@
 #include <array>
 #include <cstring>
 #include <stdexcept>
+#include <string>
+#include <cstddef>
 #include <algorithm>
 
 using Microsoft::WRL::ComPtr;
@@ -183,8 +185,7 @@ public:
         const UINT64 value=++fenceValue_; check(queue_->Signal(fence_.Get(),value),"Signal frame fence");
         frameFence_[frame]=value;
     }
-    QString status() const { return QStringLiteral("DXR active | %1 x %2 | Hardware ray tracing")
-        .arg(width_).arg(height_); }
+    QString status() const { return ready_ ? QStringLiteral("DXR active | %1 x %2 | Hardware ray tracing").arg(width_).arg(height_) : QStringLiteral("DXR not initialized"); }
 private:
     void waitFrame(UINT i) {
         const UINT64 v=frameFence_[i];
