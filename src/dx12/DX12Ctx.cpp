@@ -1,4 +1,5 @@
 #include "XWe/DX/DX12/DX12Ctx.hpp"
+#include <dxgi.h>
 namespace XWe::DX::DX12 {
 DX12Ctx::~DX12Ctx() {
     if (fence_ && fence_event_) WaitForPreviousSubmission();
@@ -10,6 +11,7 @@ HRESULT DX12Ctx::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue) noe
 }
 HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
     if (!IsInitialized()) return E_UNEXPECTED;
+    if(queue_->GetDesc().Type!=type) return E_INVALIDARG;
     if(fence_ && fence_event_) {
         HRESULT wait_hr=WaitForPreviousSubmission();
         if(FAILED(wait_hr)) return wait_hr;
