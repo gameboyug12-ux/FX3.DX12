@@ -34,7 +34,7 @@ The build produces `main.exe` and `xwe_engine.dll` in the build output directory
 
 ## XWe DLL API
 
-Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/XWE-API.md`.
+Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`.
 
 ## Rendering status
 
