@@ -5,6 +5,9 @@
 namespace XWe::DX::DX12 {
 class DX12Texture final {
 public:
+    HRESULT CreateCommitted(ID3D12Device* device, D3D12_HEAP_TYPE heap_type,
+        const D3D12_RESOURCE_DESC& description, D3D12_RESOURCE_STATES initial_state,
+        const D3D12_CLEAR_VALUE* clear_value = nullptr) noexcept;
     HRESULT Create2D(ID3D12Device* device, UINT width, UINT height, DXGI_FORMAT format,
         D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE,
         D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON) noexcept;
