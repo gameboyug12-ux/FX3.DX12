@@ -16,7 +16,7 @@ HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
     }
     command_list4_.Reset(); allocator_.Reset(); command_list_.Reset();
     if(fence_event_) { CloseHandle(fence_event_); fence_event_=nullptr; }
-    fence_.Reset();
+    fence_.Reset(); fence_value_=0;
     HRESULT hr = device_->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator_));
     if (FAILED(hr)) return hr;
     hr = device_->CreateCommandList(0, type, allocator_.Get(), nullptr, IID_PPV_ARGS(&command_list_));
