@@ -26,4 +26,14 @@ void DX12Texture::CreateDSV(ID3D12Device* d,D3D12_CPU_DESCRIPTOR_HANDLE h,const 
 void DX12Texture::CreateUAV(ID3D12Device* d,D3D12_CPU_DESCRIPTOR_HANDLE h,const D3D12_UNORDERED_ACCESS_VIEW_DESC* v) const noexcept {
     if(d && resource_) d->CreateUnorderedAccessView(resource_.Get(),nullptr,v,h);
 }
+HRESULT DX12Texture::Transition(ID3D12GraphicsCommandList* list,D3D12_RESOURCE_STATES before,
+    D3D12_RESOURCE_STATES after) const noexcept {
+    if(!list || !resource_) return E_INVALIDARG;
+    if(before==after) return S_FALSE;
+    D3D12_RESOURCE_BARRIER barrier{}; barrier.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource=resource_.Get();
+    barrier.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    barrier.Transition.StateBefore=before; barrier.Transition.StateAfter=after;
+    list->ResourceBarrier(1,&barrier); return S_OK;
+}
 }
