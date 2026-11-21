@@ -7,7 +7,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     desc.window_title = L"FX3.DX12 | XWe Engine 0.3.5";
     desc.window_width = 1600;
     desc.window_height = 900;
-#ifdef FX3_DEBUG
+#ifdef XWE_DEBUG
     desc.enable_debug_layer = 1;
 #else
     desc.enable_debug_layer = 0;
