@@ -12,6 +12,9 @@ public:
     HRESULT WaitForPreviousSubmission() noexcept;
     HRESULT ExecuteAndSignal() noexcept;
     HRESULT QueryRaytracingCommandList() noexcept;
+    HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT count,
+        D3D12_DESCRIPTOR_HEAP_FLAGS flags, ID3D12DescriptorHeap** output) noexcept;
+    UINT DescriptorIncrement(D3D12_DESCRIPTOR_HEAP_TYPE type) const noexcept;
     ID3D12Device* Device() const noexcept { return device_.Get(); }
     ID3D12CommandQueue* Queue() const noexcept { return queue_.Get(); }
     ID3D12CommandAllocator* Allocator() const noexcept { return allocator_.Get(); }
