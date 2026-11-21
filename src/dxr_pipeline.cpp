@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <iterator>
 
-namespace fx3 {
+namespace XWe {
 namespace {
 std::vector<std::byte> ReadLibrary(const std::wstring& path) {
     std::ifstream file(std::filesystem::path(path), std::ios::binary | std::ios::ate);
@@ -100,4 +100,4 @@ bool DxrPipeline::Initialize(ID3D12Device* device, const std::wstring& path) {
     if (FAILED(hr)) throw std::runtime_error("DXR raytracing pipeline state object creation failed");
     return true;
 }
-} // namespace fx3
+} // namespace XWe
