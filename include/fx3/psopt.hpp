@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <memory>
 #include <vector>
-namespace fx3
+namespace XWe
 {
     namespace DXRT
     {
@@ -34,4 +34,4 @@ namespace fx3
     } // namespace DX12
     
     
-} // namespace fx3
+} // namespace XWe
