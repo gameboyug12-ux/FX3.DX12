@@ -11,6 +11,7 @@
 #include <QStatusBar>
 #include <QTimer>
 #include <QAction>
+#include <QKeySequence>
 #include <QApplication>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
