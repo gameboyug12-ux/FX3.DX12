@@ -32,5 +32,24 @@ ID3D12PipelineState* PipelineStateCache::GetOrCreateCompute(
     compute_.emplace(key, std::move(state));
     return result;
 }
-void PipelineStateCache::Clear() noexcept { graphics_.clear(); compute_.clear(); }
+ID3D12PipelineState* PipelineStateCache::GetOrCreateStream(
+    ID3D12Device2* device, const std::string& key,
+    const D3D12_PIPELINE_STATE_STREAM_DESC& desc) {
+    if (!device || key.empty())
+        throw std::invalid_argument("Stream PSO cache requires a device and stable key");
+    if (const auto found = streams_.find(key); found != streams_.end())
+        return found->second.Get();
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> state;
+    const HRESULT hr = device->CreatePipelineState(&desc, IID_PPV_ARGS(&state));
+    if (FAILED(hr)) throw std::runtime_error("CreatePipelineState(stream) failed for PSO key: " + key);
+    auto* result = state.Get();
+    streams_.emplace(key, std::move(state));
+    return result;
+}
+void PipelineStateCache::Clear() noexcept {
+    graphics_.clear();
+    compute_.clear();
+    streams_.clear();
+}
+
 } // namespace XWe::DX12
