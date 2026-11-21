@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.3 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.4 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "FX3.DX12 currently supports Windows only.")
