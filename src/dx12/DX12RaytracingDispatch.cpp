@@ -8,6 +8,8 @@ HRESULT DX12RaytracingDispatch::Dispatch(ID3D12GraphicsCommandList4* list,
     if(!list || !pipeline || !root || !heap || heap->GetDesc().Type!=D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ||
        !(heap->GetDesc().Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) ||
        !scene_srv.ptr || !output_uav.ptr || !desc.RayGenerationShaderRecord.StartAddress ||
+       !desc.MissShaderTable.StartAddress || !desc.HitGroupTable.StartAddress ||
+       !desc.MissShaderTable.StrideInBytes || !desc.HitGroupTable.StrideInBytes ||
        !desc.Width || !desc.Height || !desc.Depth) return E_INVALIDARG;
     ID3D12DescriptorHeap* heaps[]={heap};
     list->SetDescriptorHeaps(1,heaps);
