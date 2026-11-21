@@ -1,4 +1,4 @@
-#include "fx3/dxr_pipeline.hpp"
+#include "XWe/DX12/DxrPipeline.hpp"
 #include <fstream>
 #include <filesystem>
 #include <stdexcept>
