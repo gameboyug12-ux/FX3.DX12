@@ -4,7 +4,7 @@
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     XWeApplicationDesc desc{};
     desc.struct_size = sizeof(desc);
-    desc.window_title = L"FX3.DX12 | XWe Engine 0.3.2";
+    desc.window_title = L"FX3.DX12 | XWe Engine 0.3.3";
     desc.window_width = 1600;
     desc.window_height = 900;
 #ifdef FX3_DEBUG
