@@ -2,7 +2,7 @@
 
 FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
 
-## 0.3.2 — Fullscreen editor and XWe application DLL
+## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache\n\n- DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)\n- DXC ray-tracing library build (`lib_6_3`) with ray-generation, miss and closest-hit shaders\n- Reusable keyed graphics PSO cache\n- Raster fallback remains active; full path-tracing dispatch is not yet implemented\n\n## 0.3.2 — Fullscreen editor and XWe application DLL
 
 - Fullscreen PySide6 editor (F11 toggles fullscreen)
 - C++17-oriented source editor with syntax highlighting, tabs, open and save
@@ -38,4 +38,4 @@ Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engin
 
 ## Rendering status
 
-The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The current viewport is an editor-side OpenGL preview. Native FSR 3.1 requires the AMD FidelityFX SDK, D3D12 render integration, depth, motion vectors, jitter and frame pacing. DXR/PT are also not represented as completed in this milestone.
+The 0.3.2 UI defines AA, FSR 3.1 upscaling and frame-generation options, but these are not active renderer features yet. The 0.3.3 runtime probes optional DX12 features and compiles a DXR shader library; it still does not build acceleration structures or dispatch path-tracing rays. The current viewport is an editor-side OpenGL preview. Native FSR 3.1 requires the AMD FidelityFX SDK, D3D12 render integration, depth, motion vectors, jitter and frame pacing. DXR/PT are also not represented as completed in this milestone.
