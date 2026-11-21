@@ -1,0 +1,30 @@
+{
+  "format": "FX3Scene",
+  "version": 1,
+  "objects": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Camera",
+      "type": "camera",
+      "position": [0.0, 0.0, -4.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Triangle Mesh",
+      "type": "triangle",
+      "position": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "name": "Directional Light",
+      "type": "directional_light",
+      "position": [0.0, 3.0, -1.0],
+      "rotation": [-35.0, 25.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    }
+  ]
+}
