@@ -12,6 +12,8 @@ public:
     HRESULT BeginFrame() noexcept;
     HRESULT EndFrame() noexcept;
     HRESULT CreateGraphicsPipeline(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& description) noexcept;
+    HRESULT CreateComputePipeline(const D3D12_COMPUTE_PIPELINE_STATE_DESC& description) noexcept;
+    HRESULT CreatePipelineStream(ID3D12Device2* device, const D3D12_PIPELINE_STATE_STREAM_DESC& description) noexcept;
     HRESULT ApplyRendererState() noexcept;
     HRESULT InitializeRaytracing() noexcept;
     HRESULT CreateRaytracingPipeline(const std::wstring& dxil_library_path) noexcept;
