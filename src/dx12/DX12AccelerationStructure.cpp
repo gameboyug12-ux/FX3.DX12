@@ -3,6 +3,15 @@
 #include <cstddef>
 
 namespace XWe::DX::DX12 {
+HRESULT DX12AccelerationStructure::CreateShaderResourceView(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE handle) const noexcept {
+    if(!device || !result_ || !handle.ptr) return E_INVALIDARG;
+    D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
+    desc.ViewDimension=D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+    desc.Shader4ComponentMapping=D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    desc.RaytracingAccelerationStructure.Location=result_->GetGPUVirtualAddress();
+    device->CreateShaderResourceView(nullptr,&desc,handle);
+    return S_OK;
+}
 HRESULT DX12AccelerationStructure::AllocateBuffer(ID3D12Device* device, UINT64 size,
     D3D12_RESOURCE_STATES state, Microsoft::WRL::ComPtr<ID3D12Resource>& output) noexcept {
     if (!device || !size) return E_INVALIDARG;
