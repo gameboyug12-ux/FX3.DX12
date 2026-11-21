@@ -113,7 +113,8 @@ bool SceneDocument::setObjectName(const QString& id, const QString& name) {
 
 bool SceneDocument::setTransformComponent(const QString& id, int component, double value) {
     Object* object = find(id);
-    if (!object || component < 0 || component >= 9 || !std::isfinite(value)) return false;
+    if (!object || component < 0 || component >= 9 || !std::isfinite(value) ||
+        !std::isfinite(static_cast<float>(value))) return false;
     QVector3D* target = component < 3 ? &object->position
                         : component < 6 ? &object->rotation : &object->scale;
     const int axis = component % 3;
