@@ -85,10 +85,9 @@ Native interop rules
      uint32_t window_width
      uint32_t window_height
      uint32_t enable_debug_layer
-4. Keep the Arena and UTF-16 title memory alive for the duration of
-   XWeCreateApplication. The native implementation currently copies the
-   title into its engine configuration; do not assume pointer lifetime
-   beyond the call unless the native contract changes.
+4. Keep the Arena and UTF-16 title memory alive until after
+   XWeDestroyApplication. The native EngineConfig stores the title pointer
+   and consumes it when XWeRunApplication creates the Win32 window.
 5. wchar_t is 16 bits on Windows. Use a UTF-16-compatible native layout.
 6. Always destroy a successfully created native handle, including when
    run() returns a non-zero code or throws.
