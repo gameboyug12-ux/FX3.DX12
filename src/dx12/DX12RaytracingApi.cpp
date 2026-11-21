@@ -21,7 +21,7 @@ HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
     try {
         std::ifstream file(std::filesystem::path(path),std::ios::binary|std::ios::ate);
         if(!file) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
-        const auto length=file.tellg(); if(length<=0) return E_FAIL;
+        const auto length=static_cast<std::streamsize>(file.tellg()); if(length<=0) return E_FAIL;
         std::vector<std::byte> code(static_cast<std::size_t>(length));
         file.seekg(0); file.read(reinterpret_cast<char*>(code.data()),length);
         if(!file) return E_FAIL;
