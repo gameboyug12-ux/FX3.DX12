@@ -10,7 +10,7 @@ HRESULT DX12Ctx::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue) noe
 }
 HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
     if (!IsInitialized()) return E_UNEXPECTED;
-    allocator_.Reset(); command_list_.Reset();
+    command_list4_.Reset(); allocator_.Reset(); command_list_.Reset();
     HRESULT hr = device_->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator_));
     if (FAILED(hr)) return hr;
     hr = device_->CreateCommandList(0, type, allocator_.Get(), nullptr, IID_PPV_ARGS(&command_list_));
@@ -38,6 +38,9 @@ HRESULT DX12Ctx::ExecuteAndSignal() noexcept {
     HRESULT hr=command_list_->Close(); if(FAILED(hr)) return hr;
     ID3D12CommandList* lists[]={command_list_.Get()};
     queue_->ExecuteCommandLists(1,lists);
-    return queue_->Signal(fence_.Get(),++fence_value_);
+    const UINT64 next_value=fence_value_+1;
+    HRESULT signal_hr=queue_->Signal(fence_.Get(),next_value);
+    if(SUCCEEDED(signal_hr)) fence_value_=next_value;
+    return signal_hr;
 }
 }
