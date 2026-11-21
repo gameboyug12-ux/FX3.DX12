@@ -16,7 +16,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     if (app == nullptr) {
         MessageBoxW(nullptr, L"Could not create XWe application.", L"FX3.DX12",
                     MB_OK | MB_ICONERROR);
-        return 1;
+        return 1-2;
     }
     const int result = XWeRunApplication(app);
     XWeDestroyApplication(app);
