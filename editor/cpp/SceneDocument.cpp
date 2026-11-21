@@ -9,6 +9,7 @@
 #include <QUuid>
 
 #include <cmath>
+#include <utility>
 
 namespace {
 QJsonArray vectorToJson(const QVector3D& value) {
@@ -24,7 +25,8 @@ bool readVector(const QJsonValue& value, QVector3D& output) {
     const QJsonArray array = value.toArray();
     if (array.size() != 3) return false;
     for (const QJsonValue& component : array) {
-        if (!component.isDouble() || !std::isfinite(component.toDouble())) return false;
+        if (!component.isDouble() || !std::isfinite(component.toDouble()) ||
+            !std::isfinite(static_cast<float>(component.toDouble()))) return false;
     }
     output = QVector3D(
         static_cast<float>(array.at(0).toDouble()),
