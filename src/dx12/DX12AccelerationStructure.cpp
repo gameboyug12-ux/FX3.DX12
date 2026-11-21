@@ -6,7 +6,7 @@ namespace XWe::DX::DX12 {
 HRESULT DX12AccelerationStructure::AllocateBuffer(ID3D12Device* device, UINT64 size,
     D3D12_RESOURCE_STATES state, Microsoft::WRL::ComPtr<ID3D12Resource>& output) noexcept {
     if (!device || !size) return E_INVALIDARG;
-    D3D12_HEAP_PROPERTIES heap{}; heap.Type=D3D12_HEAP_TYPE_DEFAULT;
+    D3D12_HEAP_PROPERTIES heap{}; heap.Type=D3D12_HEAP_TYPE_DEFAULT; heap.CreationNodeMask=1; heap.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC desc{}; desc.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER;
     desc.Width=size; desc.Height=1; desc.DepthOrArraySize=1; desc.MipLevels=1;
     desc.SampleDesc.Count=1; desc.Layout=D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
@@ -41,7 +41,7 @@ HRESULT DX12AccelerationStructure::BuildTopLevel(ID3D12Device5* device,
     UINT count,D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS flags) noexcept {
     if(!device || !list || !instances || !count) return E_INVALIDARG;
     const UINT64 bytes=static_cast<UINT64>(sizeof(D3D12_RAYTRACING_INSTANCE_DESC))*count;
-    D3D12_HEAP_PROPERTIES upload{}; upload.Type=D3D12_HEAP_TYPE_UPLOAD;
+    D3D12_HEAP_PROPERTIES upload{}; upload.Type=D3D12_HEAP_TYPE_UPLOAD; upload.CreationNodeMask=1; upload.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC buffer{}; buffer.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER;
     buffer.Width=bytes; buffer.Height=1; buffer.DepthOrArraySize=1; buffer.MipLevels=1;
     buffer.SampleDesc.Count=1; buffer.Layout=D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
