@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.4 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.5 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "FX3.DX12 currently supports Windows only.")
@@ -16,11 +16,11 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(FX3_SHADER_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders")
+set(XWE_SHADER_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders")
 file(MAKE_DIRECTORY "${FX3_SHADER_OUTPUT_DIR}")
 
-set(FX3_SHADER_SOURCES shaders/mesh_vs.hlsl shaders/mesh_ps.hlsl)
-set(FX3_SHADER_BINARIES)
+set(XWE_SHADER_SOURCES shaders/mesh_vs.hlsl shaders/mesh_ps.hlsl)
+set(XWE_SHADER_BINARIES)
 foreach(SHADER_SOURCE IN LISTS FX3_SHADER_SOURCES)
     get_filename_component(SHADER_NAME "${SHADER_SOURCE}" NAME)
     if(SHADER_NAME STREQUAL "mesh_vs.hlsl")
@@ -41,7 +41,7 @@ foreach(SHADER_SOURCE IN LISTS FX3_SHADER_SOURCES)
     )
     list(APPEND FX3_SHADER_BINARIES "${SHADER_BINARY}")
 endforeach()
-set(FX3_DXR_SHADER "${FX3_SHADER_OUTPUT_DIR}/pathtrace.dxil")
+set(XWE_DXR_SHADER "${FX3_SHADER_OUTPUT_DIR}/pathtrace.dxil")
 add_custom_command(
     OUTPUT "${FX3_DXR_SHADER}"
     COMMAND "${DXC_EXECUTABLE}" -nologo -T lib_6_3 -HV 2021 -Ges
@@ -51,9 +51,9 @@ add_custom_command(
     VERBATIM
 )
 list(APPEND FX3_SHADER_BINARIES "${FX3_DXR_SHADER}")
-add_custom_target(FX3Shaders DEPENDS ${FX3_SHADER_BINARIES})
+add_custom_target(XWeShaders DEPENDS ${FX3_SHADER_BINARIES})
 
-add_library(xwe_engine SHARED
+add_library(xwe_engine SHARED\n    src/pso_cache.cpp
     src/engine.cpp
     src/dx12_features.cpp
     src/pso_cache.cpp
@@ -66,8 +66,8 @@ target_compile_features(xwe_engine PUBLIC cxx_std_20)
 target_compile_definitions(xwe_engine PRIVATE
     XWE_BUILD_DLL
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
-    FX3_SHADER_DIR=L\"${FX3_SHADER_OUTPUT_DIR}\"
-    $<$<CONFIG:Debug>:FX3_DEBUG>
+    XWE_SHADER_DIR=L\"${FX3_SHADER_OUTPUT_DIR}\"
+    $<$<CONFIG:Debug>:XWE_DEBUG>
 )
 target_link_libraries(xwe_engine PRIVATE d3d12 dxgi dxguid)
 
