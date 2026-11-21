@@ -2,6 +2,16 @@
 #include <utility>
 #include <utility>
 namespace XWe::DX::DX12 {
+HRESULT DX12Texture::CreateCommitted(ID3D12Device* device,D3D12_HEAP_TYPE heap_type,
+    const D3D12_RESOURCE_DESC& desc,D3D12_RESOURCE_STATES initial_state,
+    const D3D12_CLEAR_VALUE* clear_value) noexcept {
+    if(!device || desc.Dimension==D3D12_RESOURCE_DIMENSION_UNKNOWN) return E_INVALIDARG;
+    D3D12_HEAP_PROPERTIES heap{}; heap.Type=heap_type; heap.CreationNodeMask=1; heap.VisibleNodeMask=1;
+    Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+    HRESULT hr=device->CreateCommittedResource(&heap,D3D12_HEAP_FLAG_NONE,&desc,initial_state,
+        clear_value,IID_PPV_ARGS(&resource));
+    if(SUCCEEDED(hr)){resource_=std::move(resource);desc_=desc;} return hr;
+}
 HRESULT DX12Texture::Create2D(ID3D12Device* device,UINT width,UINT height,DXGI_FORMAT format,
     D3D12_RESOURCE_FLAGS flags,D3D12_RESOURCE_STATES initial_state) noexcept {
     if(!device || !width || !height || format==DXGI_FORMAT_UNKNOWN) return E_INVALIDARG;
