@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.2.0 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.2 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "FX3.DX12 currently supports Windows only.")
@@ -15,13 +15,11 @@ if(NOT DXC_EXECUTABLE)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(FX3_SHADER_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders")
 file(MAKE_DIRECTORY "${FX3_SHADER_OUTPUT_DIR}")
 
-set(FX3_SHADER_SOURCES
-    shaders/mesh_vs.hlsl
-    shaders/mesh_ps.hlsl
-)
+set(FX3_SHADER_SOURCES shaders/mesh_vs.hlsl shaders/mesh_ps.hlsl)
 set(FX3_SHADER_BINARIES)
 foreach(SHADER_SOURCE IN LISTS FX3_SHADER_SOURCES)
     get_filename_component(SHADER_NAME "${SHADER_SOURCE}" NAME)
@@ -45,27 +43,31 @@ foreach(SHADER_SOURCE IN LISTS FX3_SHADER_SOURCES)
 endforeach()
 add_custom_target(FX3Shaders DEPENDS ${FX3_SHADER_BINARIES})
 
-add_executable(FX3DX12 WIN32
-    src/main.cpp
+add_library(xwe_engine SHARED
     src/engine.cpp
+    src/xwe_application.cpp
 )
-add_dependencies(FX3DX12 FX3Shaders)
-
-target_include_directories(FX3DX12 PRIVATE include)
-target_compile_features(FX3DX12 PRIVATE cxx_std_20)
-target_compile_definitions(FX3DX12 PRIVATE
-    UNICODE
-    _UNICODE
-    WIN32_LEAN_AND_MEAN
-    NOMINMAX
-    FX3_SHADER_DIR=L\"${FX3_SHADER_OUTPUT_DIR}\"
+add_dependencies(xwe_engine FX3Shaders)
+target_include_directories(xwe_engine PUBLIC include)
+target_compile_features(xwe_engine PUBLIC cxx_std_20)
+target_compile_definitions(xwe_engine PRIVATE
+    XWE_BUILD_DLL
+    UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
+    FX3_SHADER_DIR=L"\"${FX3_SHADER_OUTPUT_DIR}\""
     $<$<CONFIG:Debug>:FX3_DEBUG>
 )
+target_link_libraries(xwe_engine PRIVATE d3d12 dxgi dxguid)
 
-target_link_libraries(FX3DX12 PRIVATE d3d12 dxgi dxguid)
+add_executable(FX3DX12 WIN32 src/main.cpp)
+target_include_directories(FX3DX12 PRIVATE include)
+target_compile_features(FX3DX12 PRIVATE cxx_std_20)
+target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_link_libraries(FX3DX12 PRIVATE xwe_engine)
 
 if(MSVC)
-    target_compile_options(FX3DX12 PRIVATE /W4 /permissive- /Zc:preprocessor /EHsc)
+    foreach(TARGET xwe_engine FX3DX12)
+        target_compile_options(${TARGET} PRIVATE /W4 /permissive- /Zc:preprocessor /EHsc)
+    endforeach()
 endif()
 
 message(STATUS "Configuring FX3.DX12 ${PROJECT_VERSION}")
