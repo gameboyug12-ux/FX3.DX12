@@ -62,8 +62,8 @@ class CppHighlighter(QSyntaxHighlighter):
         rule(r"\\b(std|string|vector|array|unique_ptr|shared_ptr|uint32_t|uint64_t|HRESULT|HWND)\\b","#82aaff")
         rule(r"\\b[A-Z_][A-Z0-9_]{2,}\\b","#ffcb6b")
         rule(r"\\b[0-9]+(\\.[0-9]+)?[fFuUlL]*\\b","#f78c6c")
-        rule(r'"([^"\\\\]|\\\\.)*"',"#c3e88d")
-        rule(r"'([^'\\\\]|\\\\.)*'","#c3e88d")
+        rule(r'"([^"\\]|\\.)*"',"#c3e88d")
+        rule(r"'([^'\\]|\\.)*'","#c3e88d")
         rule(r"//[^\\n]*","#697386")
     def highlightBlock(self,text):
         for regex,fmt in self.rules:
