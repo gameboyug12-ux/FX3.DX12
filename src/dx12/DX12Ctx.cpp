@@ -28,6 +28,11 @@ HRESULT DX12Ctx::WaitForPreviousSubmission() noexcept {
     if(FAILED(hr)) return hr;
     return WaitForSingleObject(fence_event_,INFINITE)==WAIT_OBJECT_0?S_OK:E_FAIL;
 }
+HRESULT DX12Ctx::QueryRaytracingCommandList() noexcept {
+    if(!command_list_) return E_UNEXPECTED;
+    command_list4_.Reset();
+    return command_list_.As(&command_list4_);
+}
 HRESULT DX12Ctx::ExecuteAndSignal() noexcept {
     if(!command_list_ || !queue_ || !fence_) return E_UNEXPECTED;
     HRESULT hr=command_list_->Close(); if(FAILED(hr)) return hr;
