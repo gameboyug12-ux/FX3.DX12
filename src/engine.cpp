@@ -109,6 +109,16 @@ public:
         ThrowIfFailed(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0,
                                         IID_PPV_ARGS(&device_)),
                       "D3D12CreateDevice");
+        const Dx12FeatureReport feature_report = QueryDx12Features(device_.Get());
+        char feature_line[256]{};
+        std::snprintf(feature_line, sizeof(feature_line),
+            "[FX3] DXR tier=%u, MeshShader tier=%u, SamplerFeedback tier=%u, EnhancedBarriers=%s, VRS=%s\\n",
+            static_cast<unsigned>(feature_report.raytracing_tier),
+            static_cast<unsigned>(feature_report.mesh_shader_tier),
+            static_cast<unsigned>(feature_report.sampler_feedback_tier),
+            feature_report.enhanced_barriers ? "yes" : "no",
+            feature_report.variable_rate_shading ? "yes" : "no");
+        OutputDebugStringA(feature_line);
 
         const Dx12FeatureReport features = QueryDx12Features(device_.Get());
         char feature_line[256]{};
@@ -501,6 +511,9 @@ private:
         pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         pso.SampleDesc.Count = 1;
         pipeline_ = pso_cache_.GetOrCreate(device_.Get(), "mesh.raster.default.v1", pso);
+        if (pipeline_ == nullptr) {
+            throw std::runtime_error("Graphics PSO cache returned a null pipeline");
+        }
     }
 
     void UpdateFrameConstants() {
