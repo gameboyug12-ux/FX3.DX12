@@ -21,5 +21,6 @@ private:
                            Microsoft::WRL::ComPtr<ID3D12Resource>& output) noexcept;
     Microsoft::WRL::ComPtr<ID3D12Resource> result_;
     Microsoft::WRL::ComPtr<ID3D12Resource> scratch_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> instance_upload_;
 };
 }
