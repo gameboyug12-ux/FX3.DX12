@@ -48,5 +48,5 @@ XWeDestroyApplication(XWeApplicationHandle application) {
 }
 
 extern "C" XWE_API const wchar_t* XWeGetVersion(void) {
-    return L"0.3.4";
+    return L"0.3.5";
 }
