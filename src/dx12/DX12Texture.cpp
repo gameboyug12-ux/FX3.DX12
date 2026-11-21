@@ -1,6 +1,5 @@
 #include "XWe/DX/DX12/DX12Texture.hpp"
 #include <utility>
-#include <utility>
 namespace XWe::DX::DX12 {
 HRESULT DX12Texture::CreateCommitted(ID3D12Device* device,D3D12_HEAP_TYPE heap_type,
     const D3D12_RESOURCE_DESC& desc,D3D12_RESOURCE_STATES initial_state,
