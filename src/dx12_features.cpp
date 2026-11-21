@@ -1,4 +1,4 @@
-#include "fx3/dx12_features.hpp"
+#include "XWe/DX12/Dx12Features.hpp"
 namespace XWe {
 Dx12FeatureReport QueryDx12Features(ID3D12Device* device) {
  Dx12FeatureReport report{};
