@@ -20,7 +20,7 @@ HRESULT DX12GBuffer::Create(DX12Ctx& context,UINT width,UINT height) noexcept {
 }
 HRESULT DX12GBuffer::CreateViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE rtv,
     UINT increment,D3D12_CPU_DESCRIPTOR_HANDLE dsv) const noexcept {
-    if(!device || !increment || !width_ || !height_) return E_INVALIDARG;
+    if(!device || !increment || !rtv.ptr || !dsv.ptr || !width_ || !height_) return E_INVALIDARG;
     for(const auto& target:targets_) {
         if(!target) return E_UNEXPECTED;
         target.CreateRTV(device,rtv); rtv.ptr+=increment;
@@ -47,7 +47,7 @@ HRESULT DX12GBuffer::TransitionDepth(ID3D12GraphicsCommandList* list,
 }
 HRESULT DX12GBuffer::CreateShaderViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE srv,
     UINT increment) const noexcept {
-    if(!device || !increment || !width_ || !height_) return E_INVALIDARG;
+    if(!device || !increment || !srv.ptr || !width_ || !height_) return E_INVALIDARG;
     for(const auto& target:targets_) {
         if(!target) return E_UNEXPECTED;
         D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
