@@ -9,6 +9,10 @@ namespace XWe::DX::DX12 {
 HRESULT DX12RaytracingApi::Initialize(ID3D12Device* device) noexcept {
     if(!device) return E_INVALIDARG;
     state_object_.Reset(); properties_.Reset(); global_root_signature_.Reset(); device5_.Reset();
+    D3D12_FEATURE_DATA_D3D12_OPTIONS5 options{};
+    HRESULT hr=device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5,&options,sizeof(options));
+    if(FAILED(hr)) return hr;
+    if(options.RaytracingTier==D3D12_RAYTRACING_TIER_NOT_SUPPORTED) return DXGI_ERROR_UNSUPPORTED;
     return device->QueryInterface(IID_PPV_ARGS(&device5_));
 }
 HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
