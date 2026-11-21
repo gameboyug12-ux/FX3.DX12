@@ -33,6 +33,16 @@ HRESULT DX12Ctx::QueryRaytracingCommandList() noexcept {
     command_list4_.Reset();
     return command_list_.As(&command_list4_);
 }
+HRESULT DX12Ctx::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type,UINT count,
+    D3D12_DESCRIPTOR_HEAP_FLAGS flags,ID3D12DescriptorHeap** output) noexcept {
+    if(!device_ || !output || !count) return E_INVALIDARG;
+    *output=nullptr;
+    D3D12_DESCRIPTOR_HEAP_DESC desc{}; desc.Type=type; desc.NumDescriptors=count; desc.Flags=flags;
+    return device_->CreateDescriptorHeap(&desc,IID_PPV_ARGS(output));
+}
+UINT DX12Ctx::DescriptorIncrement(D3D12_DESCRIPTOR_HEAP_TYPE type) const noexcept {
+    return device_?device_->GetDescriptorHandleIncrementSize(type):0;
+}
 HRESULT DX12Ctx::ExecuteAndSignal() noexcept {
     if(!command_list_ || !queue_ || !fence_) return E_UNEXPECTED;
     HRESULT hr=command_list_->Close(); if(FAILED(hr)) return hr;
