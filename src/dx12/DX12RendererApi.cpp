@@ -8,17 +8,17 @@ HRESULT DX12RendererApi::BeginFrame() noexcept {
     if(!context_.IsInitialized() || !context_.Allocator() || !context_.CommandList()) return E_UNEXPECTED;
     HRESULT hr=context_.WaitForPreviousSubmission(); if(FAILED(hr)) return hr;
     hr=context_.Allocator()->Reset(); if(FAILED(hr)) return hr;
-    return context_.CommandList()->Reset(context_.Allocator(),pipeline_.Get());
+    return context_.CommandList()->Reset(context_.Allocator(),graphics_pipeline_.Get());
 }
 HRESULT DX12RendererApi::EndFrame() noexcept { return context_.ExecuteAndSignal(); }
 HRESULT DX12RendererApi::CreateGraphicsPipeline(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) noexcept {
-    return pipeline_.CreateGraphics(context_.Device(),desc);
+    return graphics_pipeline_.CreateGraphics(context_.Device(),desc);
 }
 HRESULT DX12RendererApi::CreateComputePipeline(const D3D12_COMPUTE_PIPELINE_STATE_DESC& desc) noexcept {
-    return pipeline_.CreateCompute(context_.Device(),desc);
+    return compute_pipeline_.CreateCompute(context_.Device(),desc);
 }
 HRESULT DX12RendererApi::CreatePipelineStream(ID3D12Device2* device,const D3D12_PIPELINE_STATE_STREAM_DESC& desc) noexcept {
-    return pipeline_.CreateStream(device,desc);
+    return stream_pipeline_.CreateStream(device,desc);
 }
 HRESULT DX12RendererApi::ApplyRendererState() noexcept {
     return state_.Apply(context_.CommandList());
