@@ -26,7 +26,7 @@
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
-namespace fx3 {
+namespace XWe {
 namespace {
 
 constexpr UINT kFrameCount = 2;
@@ -696,4 +696,4 @@ int Engine::Run(HINSTANCE instance, int show_command) {
     return impl_->Run(instance, show_command);
 }
 
-} // namespace fx3
+} // namespace XWe
