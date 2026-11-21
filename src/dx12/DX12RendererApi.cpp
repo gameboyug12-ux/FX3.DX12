@@ -14,6 +14,9 @@ HRESULT DX12RendererApi::EndFrame() noexcept { return context_.ExecuteAndSignal(
 HRESULT DX12RendererApi::CreateGraphicsPipeline(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) noexcept {
     return pipeline_.CreateGraphics(context_.Device(),desc);
 }
+HRESULT DX12RendererApi::ApplyRendererState() noexcept {
+    return state_.Apply(context_.CommandList());
+}
 HRESULT DX12RendererApi::InitializeRaytracing() noexcept {
     return raytracing_.Initialize(context_.Device());
 }
