@@ -12,7 +12,7 @@ HRESULT DX12ShaderBindingTable::Create(ID3D12Device* device,ID3D12StateObjectPro
     const UINT section=(stride + D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT-1) &
         ~(D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT-1);
     const UINT64 total=static_cast<UINT64>(section)*3;
-    D3D12_HEAP_PROPERTIES heap{}; heap.Type=D3D12_HEAP_TYPE_UPLOAD;
+    D3D12_HEAP_PROPERTIES heap{}; heap.Type=D3D12_HEAP_TYPE_UPLOAD; heap.CreationNodeMask=1; heap.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC desc{}; desc.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER;
     desc.Width=total; desc.Height=1; desc.DepthOrArraySize=1; desc.MipLevels=1;
     desc.SampleDesc.Count=1; desc.Layout=D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
