@@ -17,6 +17,7 @@
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 #include <QStatusBar>
+#include <QStringList>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 
