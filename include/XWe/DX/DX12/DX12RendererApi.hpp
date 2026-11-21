@@ -21,12 +21,16 @@ public:
     DX12Ctx& Context() noexcept { return context_; }
     const DX12Ctx& Context() const noexcept { return context_; }
     DX12RendererStateObject& State() noexcept { return state_; }
-    DX12PiplineStateObject& PipelineState() noexcept { return pipeline_; }
+    DX12PiplineStateObject& PipelineState() noexcept { return graphics_pipeline_; }
+    DX12PiplineStateObject& ComputePipelineState() noexcept { return compute_pipeline_; }
+    DX12PiplineStateObject& StreamPipelineState() noexcept { return stream_pipeline_; }
     DX12RaytracingApi& Raytracing() noexcept { return raytracing_; }
 private:
     DX12Ctx context_;
     DX12RendererStateObject state_;
-    DX12PiplineStateObject pipeline_;
+    DX12PiplineStateObject graphics_pipeline_;
+    DX12PiplineStateObject compute_pipeline_;
+    DX12PiplineStateObject stream_pipeline_;
     DX12RaytracingApi raytracing_;
 };
 }
