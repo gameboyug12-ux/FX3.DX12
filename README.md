@@ -5,7 +5,7 @@
 FX3.DX12 0.3.8 is an incremental 0.3.x release. It is the first release in this line with a usable basic scene-document workflow; it is not a 0.4, 0.7 or 1.0 milestone.
 
 - Separate native `FX3Editor.exe` built with Qt 6 Widgets and C++20.
-- Create, open, save and save-as versioned `.fx3scene` documents.
+- Create, open, save and save-as versioned `.fx3scene` documents. A starter scene is provided at `examples/BasicScene.fx3scene`.
 - Scene Outliner supports object selection, adding triangle entries and deleting selected entries.
 - Properties panel edits object names and location/rotation/scale values.
 - Unsaved-change prompts, dirty title marker and editor console.
