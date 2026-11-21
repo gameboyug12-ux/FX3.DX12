@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.2 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.3 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "FX3.DX12 currently supports Windows only.")
@@ -41,6 +41,16 @@ foreach(SHADER_SOURCE IN LISTS FX3_SHADER_SOURCES)
     )
     list(APPEND FX3_SHADER_BINARIES "${SHADER_BINARY}")
 endforeach()
+set(FX3_DXR_SHADER "${FX3_SHADER_OUTPUT_DIR}/pathtrace.dxil")
+add_custom_command(
+    OUTPUT "${FX3_DXR_SHADER}"
+    COMMAND "${DXC_EXECUTABLE}" -nologo -T lib_6_3 -HV 2021 -Ges
+            -Fo "${FX3_DXR_SHADER}" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/pathtrace.hlsl"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/pathtrace.hlsl"
+    COMMENT "Compiling DXR path-tracing library"
+    VERBATIM
+)
+list(APPEND FX3_SHADER_BINARIES "${FX3_DXR_SHADER}")
 add_custom_target(FX3Shaders DEPENDS ${FX3_SHADER_BINARIES})
 
 add_library(xwe_engine SHARED
