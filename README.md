@@ -2,7 +2,14 @@
 
 FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
 
-## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache\n\n- DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)\n- DXC ray-tracing library build (`lib_6_3`) with ray-generation, miss and closest-hit shaders\n- Reusable keyed graphics PSO cache\n- Raster fallback remains active; full path-tracing dispatch is not yet implemented\n\n## 0.3.2 — Fullscreen editor and XWe application DLL
+## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache
+
+- DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)
+- DXC ray-tracing library build (`lib_6_3`) with ray-generation, miss and closest-hit shaders
+- Reusable keyed graphics PSO cache
+- Raster fallback remains active; full path-tracing dispatch is not yet implemented
+
+## 0.3.2 — Fullscreen editor and XWe application DLL
 
 - Fullscreen PySide6 editor (F11 toggles fullscreen)
 - C++17-oriented source editor with syntax highlighting, tabs, open and save
