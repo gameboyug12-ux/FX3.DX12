@@ -1,6 +1,6 @@
 #include "fx3/engine.hpp"
 #include "fx3/dx12_features.hpp"
-#include "fx3/pso_cache.hpp"
+#include "XWe/DX12/PipelineStateCache.hpp"
 #include "fx3/dxr_pipeline.hpp"
 
 #include <Windows.h>
@@ -514,7 +514,7 @@ private:
         pso.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         pso.SampleDesc.Count = 1;
-        pipeline_ = pso_cache_.GetOrCreate(device_.Get(), "mesh.raster.default.v1", pso);
+        pipeline_ = pso_cache_.GetOrCreateGraphics(device_.Get(), "mesh.raster.default.v1", pso);
         if (pipeline_ == nullptr) {
             throw std::runtime_error("Graphics PSO cache returned a null pipeline");
         }
@@ -573,7 +573,7 @@ private:
     ComPtr<ID3D12Fence> fence_;
     ComPtr<ID3D12RootSignature> root_signature_;
     ComPtr<ID3D12PipelineState> pipeline_;
-    GraphicsPsoCache pso_cache_;
+    XWe::DX12::PipelineStateCache pso_cache_;
     DxrPipeline dxr_pipeline_;
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
