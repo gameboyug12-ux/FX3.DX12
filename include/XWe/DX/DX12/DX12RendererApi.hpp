@@ -4,6 +4,7 @@
 #include "DX12PiplineStateObject.hpp"
 #include "DX12RaytracingApi.hpp"
 #include <filesystem>
+#include <string>
 
 namespace XWe::DX::DX12 {
 class DX12RendererApi final {
