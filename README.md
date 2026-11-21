@@ -1,5 +1,16 @@
 # FX3.DX12
 
+## 0.3.5 — XWe standard API, Java Panama and PSO foundation
+
+- Implemented Java 22+ Panama FFM bindings for `xwe_engine.dll` (no JNI).
+- Added `XWeApplication`, `XWeApplicationDesc`, `XWeVersion` and `XWeException`.
+- Kept the UTF-16 window title Arena alive for the complete native application lifetime.
+- Migrated engine C++ namespace from `fx3` to `XWe`; DX12 APIs use `XWe::DX12`.
+- Added canonical public headers under `include/XWe`.
+- Added graphics, compute and pipeline-state-stream PSO caching through
+  `XWe::DX12::PipelineStateCache`.
+- Preserved legacy `include/fx3` header paths as forwarding headers only.
+
 FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
 
 ## 0.3.4 — XWe Java API specification
@@ -48,7 +59,7 @@ The build produces `main.exe` and `xwe_engine.dll` in the build output directory
 
 ## XWe DLL API
 
-Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`. The Java integration contract is in `src/xwe/java/api/java.txt`.
+Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`. The Java implementation is in `src/xwe/java/api`; see `docs/0.3.5-JAVA-PANAMA-AND-PSO-API.md`.
 
 ## Rendering status
 
