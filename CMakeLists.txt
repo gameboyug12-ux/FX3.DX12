@@ -76,7 +76,7 @@ add_executable(FX3DX12 WIN32 src/main.cpp)
 set_target_properties(FX3DX12 PROPERTIES OUTPUT_NAME "main")
 target_include_directories(FX3DX12 PRIVATE include)
 target_compile_features(FX3DX12 PRIVATE cxx_std_20)
-target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX XWE_DEBUG)
+target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX $<$<CONFIG:Debug>:XWE_DEBUG>)
 target_link_libraries(FX3DX12 PRIVATE xwe_engine)
 
 # Java sources are kept visible to IDEs; the native engine does not require a JDK.
