@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.8 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.9 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "XWe currently supports Windows only.")
 endif()
 
-set(CMAKE_AUTOMOC ON)
-find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets)
 
 find_program(DXC_EXECUTABLE NAMES dxc
     HINTS "$ENV{VULKAN_SDK}/Bin" "$ENV{WindowsSdkDir}/bin"
@@ -126,22 +124,24 @@ target_compile_features(FX3DX12 PRIVATE cxx_std_20)
 target_compile_definitions(FX3DX12 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX $<$<CONFIG:Debug>:XWE_DEBUG>)
 target_link_libraries(FX3DX12 PRIVATE xwe_engine)
 
-# Standalone Qt editor; separate from the engine executable.
-qt_add_executable(FX3Editor MANUAL_FINALIZATION WIN32
-    editor/cpp/main.cpp
-    editor/cpp/MainWindow.cpp
-    editor/cpp/MainWindow.hpp
-    editor/cpp/SceneDocument.cpp
-    editor/cpp/SceneDocument.hpp
-    editor/cpp/DXRViewport.cpp
-    editor/cpp/DXRViewport.hpp
+# Native Win32 editor. No Qt runtime, headers, or build tools are required.
+add_executable(FX3Editor WIN32
+    editor/win32/main.cpp
+    editor/win32/MainWindow.cpp
+    editor/win32/MainWindow.hpp
+    editor/win32/SceneDocument.cpp
+    editor/win32/SceneDocument.hpp
+    editor/win32/DXRViewport.cpp
+    editor/win32/DXRViewport.hpp
 )
 add_dependencies(FX3Editor XWeShaders)
+target_include_directories(FX3Editor PRIVATE editor/win32)
 target_compile_features(FX3Editor PRIVATE cxx_std_20)
-target_compile_definitions(FX3Editor PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
-target_compile_definitions(FX3Editor PRIVATE "XWE_SHADER_DIR=L\""${XWE_SHADER_OUTPUT_DIR}\""")
-target_link_libraries(FX3Editor PRIVATE Qt6::Widgets d3d12 dxgi dxguid)
-qt_finalize_executable(FX3Editor)
+target_compile_definitions(FX3Editor PRIVATE
+    UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
+    XWE_SHADER_DIR=L"${XWE_SHADER_OUTPUT_DIR}"
+)
+target_link_libraries(FX3Editor PRIVATE xwe_engine d3d12 dxgi dxguid ole32 shell32 comctl32 uuid)
 
 set(XWE_JAVA_API_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/xwe/java/api/XWeApplication.java
