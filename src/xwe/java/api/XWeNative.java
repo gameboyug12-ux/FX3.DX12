@@ -97,7 +97,7 @@ final class XWeNative {
         try {
             MemorySegment pointer = (MemorySegment) VERSION.invokeExact();
             if (pointer.equals(MemorySegment.NULL)) return "unknown";
-            return pointer.reinterpret(Long.MAX_VALUE).getString(0, StandardCharsets.UTF_16LE);
+            return pointer.reinterpret(4096).getString(0, StandardCharsets.UTF_16LE);
         } catch (Throwable error) {
             throw new XWeException("XWeGetVersion downcall failed.", error);
         }
