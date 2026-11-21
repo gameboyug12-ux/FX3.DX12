@@ -6,16 +6,16 @@
 
 namespace {
 struct XWeApplicationInstance {
-    explicit XWeApplicationInstance(const fx3::EngineConfig& config)
+    explicit XWeApplicationInstance(const XWe::EngineConfig& config)
         : engine(config) {}
-    fx3::Engine engine;
+    XWe::Engine engine;
 };
 }
 
 extern "C" XWE_API XWeApplicationHandle
 XWeCreateApplication(const XWeApplicationDesc* desc) {
     try {
-        fx3::EngineConfig config{};
+        XWe::EngineConfig config{};
         if (desc != nullptr) {
             if (desc->struct_size < sizeof(XWeApplicationDesc)) {
                 return nullptr;
