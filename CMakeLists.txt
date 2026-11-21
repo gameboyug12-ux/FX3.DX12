@@ -56,6 +56,8 @@ add_custom_target(FX3Shaders DEPENDS ${FX3_SHADER_BINARIES})
 add_library(xwe_engine SHARED
     src/engine.cpp
     src/xwe_application.cpp
+    src/dx12_features.cpp
+    src/pso_cache.cpp
 )
 add_dependencies(xwe_engine FX3Shaders)
 target_include_directories(xwe_engine PUBLIC include)
