@@ -1,5 +1,6 @@
 #include "fx3/pso_cache.hpp"
-#include <stdexcept>\n#include <utility>
+#include <stdexcept>
+#include <utility>
 namespace fx3 {
 ID3D12PipelineState* GraphicsPsoCache::GetOrCreate(ID3D12Device* device,const std::string& key,const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) {
  if (!device || key.empty()) throw std::invalid_argument("PSO cache requires a device and stable key");
