@@ -5,7 +5,7 @@ HRESULT DX12RaytracingDispatch::Dispatch(ID3D12GraphicsCommandList4* list,
     ID3D12DescriptorHeap* heap, D3D12_GPU_DESCRIPTOR_HANDLE scene_srv,
     D3D12_GPU_DESCRIPTOR_HANDLE output_uav,
     const D3D12_DISPATCH_RAYS_DESC& desc) const noexcept {
-    if(!list || !pipeline || !root || !heap ||
+    if(!list || !pipeline || !root || !heap || heap->GetDesc().Type!=D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ||
        !(heap->GetDesc().Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) ||
        !scene_srv.ptr || !output_uav.ptr || !desc.RayGenerationShaderRecord.StartAddress ||
        !desc.Width || !desc.Height || !desc.Depth) return E_INVALIDARG;
