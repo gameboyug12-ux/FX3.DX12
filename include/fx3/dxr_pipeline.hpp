@@ -3,7 +3,7 @@
 #include <wrl/client.h>
 #include <string>
 
-namespace fx3 {
+namespace XWe {
 class DxrPipeline final {
 public:
     bool Initialize(ID3D12Device* device, const std::wstring& dxil_library_path);
@@ -14,4 +14,4 @@ private:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> global_root_signature_;
     Microsoft::WRL::ComPtr<ID3D12StateObject> state_object_;
 };
-} // namespace fx3
+} // namespace XWe
