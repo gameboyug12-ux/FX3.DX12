@@ -1,14 +1,18 @@
 from __future__ import annotations
 import ctypes, math, struct, sys
 from pathlib import Path
+
 from OpenGL.GL import *
-from PySide6.QtCore import Qt, QProcess, QTimer
-from PySide6.QtGui import QAction, QMatrix4x4, QSurfaceFormat, QVector3D
+from PySide6.QtCore import Qt, QProcess, QRegularExpression, QTimer
+from PySide6.QtGui import (QAction, QColor, QFont, QMatrix4x4, QSyntaxHighlighter,
+                           QTextCharFormat, QSurfaceFormat, QVector3D)
 from PySide6.QtOpenGL import QOpenGLShader, QOpenGLShaderProgram
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtWidgets import (QApplication, QComboBox, QDockWidget, QFileDialog,
-    QFormLayout, QLabel, QMainWindow, QMessageBox, QPlainTextEdit, QSpinBox,
-    QTreeWidget, QTreeWidgetItem, QWidget)
+from PySide6.QtWidgets import (
+    QApplication, QComboBox, QDockWidget, QFileDialog, QFormLayout, QDoubleSpinBox,
+    QLabel, QMainWindow, QMessageBox, QPlainTextEdit, QSpinBox, QTabWidget,
+    QTreeWidget, QTreeWidgetItem, QWidget, QVBoxLayout
+)
 
 VS = """#version 330 core
 layout(location=0) in vec3 p; layout(location=1) in vec3 n;
@@ -45,17 +49,55 @@ def parse_obj(path: Path):
     if not out: raise ValueError("OBJ contains no renderable faces")
     return out,len(out)//6
 
+class CppHighlighter(QSyntaxHighlighter):
+    def __init__(self, document):
+        super().__init__(document)
+        self.rules=[]
+        def rule(pattern, color, bold=False):
+            fmt=QTextCharFormat(); fmt.setForeground(QColor(color))
+            if bold: fmt.setFontWeight(QFont.Bold)
+            self.rules.append((QRegularExpression(pattern),fmt))
+        keywords=r"\\b(auto|bool|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|extern|false|float|for|friend|if|inline|int|long|namespace|new|nullptr|override|private|protected|public|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typename|union|unsigned|using|virtual|void|volatile|while)\\b"
+        rule(keywords,"#c792ea",True)
+        rule(r"\\b(std|string|vector|array|unique_ptr|shared_ptr|uint32_t|uint64_t|HRESULT|HWND)\\b","#82aaff")
+        rule(r"\\b[A-Z_][A-Z0-9_]{2,}\\b","#ffcb6b")
+        rule(r"\\b[0-9]+(\\.[0-9]+)?[fFuUlL]*\\b","#f78c6c")
+        rule(r'"([^"\\\\]|\\\\.)*"',"#c3e88d")
+        rule(r"'([^'\\\\]|\\\\.)*'","#c3e88d")
+        rule(r"//[^\\n]*","#697386")
+    def highlightBlock(self,text):
+        for regex,fmt in self.rules:
+            it=regex.globalMatch(text)
+            while it.hasNext():
+                match=it.next(); self.setFormat(match.capturedStart(),match.capturedLength(),fmt)
+        if text.lstrip().startswith("#"):
+            fmt=QTextCharFormat(); fmt.setForeground(QColor("#89ddff"))
+            self.setFormat(0,len(text),fmt)
+
+class CodeTab(QWidget):
+    def __init__(self,path: Path|None=None):
+        super().__init__(); self.path=path
+        self.editor=QPlainTextEdit(); self.editor.setFont(QFont("Cascadia Code",10))
+        self.editor.setTabStopDistance(4*self.editor.fontMetrics().horizontalAdvance(" "))
+        self.highlighter=CppHighlighter(self.editor.document())
+        layout=QVBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.addWidget(self.editor)
+        if path and path.is_file(): self.editor.setPlainText(path.read_text(encoding="utf-8",errors="replace"))
+    @property
+    def title(self): return self.path.name if self.path else "untitled.cpp"
+
 class Viewport(QOpenGLWidget):
     def __init__(self,parent=None):
         super().__init__(parent); self.data=[]; self.count=0; self.vbo=0; self.program=None
-        self.angle=0; self.distance=4
+        self.angle=0; self.distance=4.0
+        self.transform=[0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0]
         self.timer=QTimer(self); self.timer.timeout.connect(self.tick); self.timer.start(16)
-        self.setMinimumSize(480,320)
-    def tick(self): self.angle=(self.angle+.35)%360; self.update()
+        self.setMinimumSize(420,280)
+    def tick(self): self.angle=(self.angle+.25)%360; self.update()
     def set_mesh(self,data,count):
         self.data,self.count=data,count
         if self.isValid(): self.makeCurrent(); self.upload(); self.doneCurrent()
         self.update()
+    def set_transform(self,values): self.transform=list(values); self.update()
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST); self.program=QOpenGLShaderProgram(self)
         self.program.addShaderFromSourceCode(QOpenGLShader.Vertex,VS)
@@ -72,52 +114,114 @@ class Viewport(QOpenGLWidget):
         if not self.program or not self.count: return
         projection=QMatrix4x4(); projection.perspective(55,max(self.width(),1)/max(self.height(),1),.05,5000)
         view=QMatrix4x4(); view.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
-        model=QMatrix4x4(); model.rotate(self.angle,0,1,0); model.rotate(-12,1,0,0)
+        p=self.transform; model=QMatrix4x4()
+        model.translate(p[0],p[1],p[2]); model.rotate(p[3],1,0,0); model.rotate(p[4],0,1,0); model.rotate(p[5],0,0,1)
+        model.scale(p[6],p[7],p[8]); model.rotate(self.angle,0,1,0)
         self.program.bind(); self.program.setUniformValue("mvp",projection*view*model); self.program.setUniformValue("model",model)
         glBindBuffer(GL_ARRAY_BUFFER,self.vbo); glEnableVertexAttribArray(0); glEnableVertexAttribArray(1)
-        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,24,None); glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24,ctypes.c_void_p(12))
+        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,24,None)
+        glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24,ctypes.c_void_p(12))
         glDrawArrays(GL_TRIANGLES,0,self.count); glBindBuffer(GL_ARRAY_BUFFER,0); self.program.release()
     def wheelEvent(self,event):
         self.distance=max(1,min(30,self.distance-event.angleDelta().y()/1200)); self.update()
 
 class Editor(QMainWindow):
     def __init__(self):
-        super().__init__(); self.setWindowTitle("FX3.DX12 Editor 0.3.1"); self.resize(1440,900)
-        self.exe=Path("C:/XWe0.2/bulid/main.exe"); self.proc=QProcess(self)
-        self.proc.readyReadStandardOutput.connect(self.read_out); self.proc.readyReadStandardError.connect(self.read_err)
+        super().__init__(); self.setWindowTitle("FX3.DX12 Editor 0.3.2")
+        self.resize(1600,950); self.exe=Path("C:/XWe0.2/bulid/main.exe")
+        self.proc=QProcess(self); self.proc.readyReadStandardOutput.connect(self.read_out); self.proc.readyReadStandardError.connect(self.read_err)
         self.viewport=Viewport(self); self.setCentralWidget(self.viewport)
-        scene=QDockWidget("Scene",self); self.tree=QTreeWidget(); self.tree.setHeaderLabels(["Object"])
+        self._build_scene(); self._build_inspector(); self._build_code(); self._build_output(); self._build_menus()
+        self.statusBar().showMessage("FX3 Editor 0.3.2 | F11: toggle fullscreen | F5: launch engine")
+        self.showFullScreen()
+    def _build_scene(self):
+        dock=QDockWidget("Scene Hierarchy",self); self.tree=QTreeWidget(); self.tree.setHeaderLabels(["Object"])
         root=QTreeWidgetItem(["Scene"]); root.addChildren([QTreeWidgetItem(["Camera"]),QTreeWidgetItem(["Directional Light"])])
-        self.tree.addTopLevelItem(root); root.setExpanded(True); scene.setWidget(self.tree); self.addDockWidget(Qt.LeftDockWidgetArea,scene)
-        dock=QDockWidget("Inspector / Renderer",self); panel=QWidget(); form=QFormLayout(panel)
-        self.asset=QLabel("No asset loaded"); self.aa=QComboBox(); self.aa.addItems(["None","MSAA 2x","MSAA 4x","MSAA 8x"])
-        self.upscaler=QComboBox(); self.upscaler.addItems(["Disabled","FSR 3 (not integrated yet)"])
-        self.mode=QComboBox(); self.mode.addItems(["Rasterization","Path tracing (DXR backend pending)"])
-        self.samples=QSpinBox(); self.samples.setRange(1,4096); self.samples.setValue(64)
-        self.bounces=QSpinBox(); self.bounces.setRange(1,32); self.bounces.setValue(4)
-        for label,widget in [("Asset",self.asset),("AA",self.aa),("Upscaler",self.upscaler),("Render mode",self.mode),("PT samples",self.samples),("Max bounces",self.bounces)]:
-            form.addRow(label,widget)
-        form.addRow(QLabel("FSR3 / DXR / PT controls are placeholders, not active rendering features."))
+        self.tree.addTopLevelItem(root); root.setExpanded(True); self.tree.itemSelectionChanged.connect(self._selection_changed)
+        dock.setWidget(self.tree); self.addDockWidget(Qt.LeftDockWidgetArea,dock)
+    def _build_inspector(self):
+        dock=QDockWidget("Object Inspector",self); panel=QWidget(); form=QFormLayout(panel)
+        self.object_name=QLabel("No object selected"); form.addRow("Selected",self.object_name)
+        self.fields=[]
+        for group,labels in [("Position",("X","Y","Z")),("Rotation",("X","Y","Z")),("Scale",("X","Y","Z"))]:
+            form.addRow(QLabel(group))
+            for axis in labels:
+                spin=QDoubleSpinBox(); spin.setRange(-100000,100000); spin.setDecimals(3); spin.setSingleStep(.1)
+                if group=="Scale": spin.setValue(1.0)
+                spin.valueChanged.connect(self._transform_changed); self.fields.append(spin); form.addRow(axis,spin)
+        self.aa=QComboBox(); self.aa.addItems(["TAA (planned native pass)","MSAA 2x","MSAA 4x","MSAA 8x","FSR 3.1 AA (SDK integration pending)"])
+        self.fsr=QComboBox(); self.fsr.addItems(["Native resolution","FSR 3.1 Quality","FSR 3.1 Balanced","FSR 3.1 Performance","FSR 3.1 Ultra Performance"])
+        self.fg=QComboBox(); self.fg.addItems(["Frame Generation: Off","FSR 3.1 Frame Generation (SDK integration pending)"])
+        form.addRow("Anti-aliasing",self.aa); form.addRow("Upscaling",self.fsr); form.addRow("Frame generation",self.fg)
+        form.addRow(QLabel("FSR options are configuration UI only until FidelityFX SDK is linked to DX12 render passes."))
         dock.setWidget(panel); self.addDockWidget(Qt.RightDockWidgetArea,dock)
-        output=QDockWidget("Output",self); self.log=QPlainTextEdit(); self.log.setReadOnly(True)
-        output.setWidget(self.log); self.addDockWidget(Qt.BottomDockWidgetArea,output)
-        menu=self.menuBar().addMenu("&File")
-        op=QAction("Open OBJ...",self); op.setShortcut("Ctrl+O"); op.triggered.connect(self.open_obj); menu.addAction(op)
-        choose=QAction("Set engine executable...",self); choose.triggered.connect(self.choose_exe); menu.addAction(choose)
-        run=self.menuBar().addMenu("&Engine"); launch=QAction("Launch engine",self); launch.setShortcut("F5"); launch.triggered.connect(self.launch); run.addAction(launch)
-        self.statusBar().showMessage("Ready")
+    def _build_code(self):
+        dock=QDockWidget("C++17 Code Editor",self); self.tabs=QTabWidget(); self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self._close_tab); dock.setWidget(self.tabs)
+        self.addDockWidget(Qt.BottomDockWidgetArea,dock); self.new_code_tab()
+    def _build_output(self):
+        dock=QDockWidget("Output",self); self.log=QPlainTextEdit(); self.log.setReadOnly(True)
+        dock.setWidget(self.log); self.addDockWidget(Qt.BottomDockWidgetArea,dock)
+        self.tabifyDockWidget(self.findChild(QDockWidget,""),dock)
+    def _build_menus(self):
+        file=self.menuBar().addMenu("&File")
+        self._action(file,"Open OBJ...","Ctrl+O",self.open_obj)
+        self._action(file,"Open C++ source...","Ctrl+Shift+O",self.open_code)
+        self._action(file,"Save code","Ctrl+S",self.save_code)
+        self._action(file,"New C++ tab","Ctrl+N",self.new_code_tab)
+        file.addSeparator(); self._action(file,"Set engine executable...",None,self.choose_exe)
+        engine=self.menuBar().addMenu("&Engine"); self._action(engine,"Launch engine","F5",self.launch)
+        view=self.menuBar().addMenu("&View"); self._action(view,"Toggle fullscreen","F11",self.toggle_fullscreen)
+        self._action(view,"Exit fullscreen","Esc",self.leave_fullscreen)
+    def _action(self,menu,label,shortcut,callback):
+        a=QAction(label,self)
+        if shortcut: a.setShortcut(shortcut)
+        a.triggered.connect(callback); menu.addAction(a); return a
+    def toggle_fullscreen(self):
+        self.showNormal() if self.isFullScreen() else self.showFullScreen()
+    def leave_fullscreen(self):
+        if self.isFullScreen(): self.showNormal()
+    def new_code_tab(self):
+        tab=CodeTab(); self.tabs.addTab(tab,tab.title); self.tabs.setCurrentWidget(tab)
+    def open_code(self):
+        name,_=QFileDialog.getOpenFileName(self,"Open C++ source","","C++ files (*.cpp *.cc *.cxx *.h *.hpp);;All files (*.*)")
+        if not name: return
+        path=Path(name)
+        for i in range(self.tabs.count()):
+            tab=self.tabs.widget(i)
+            if tab.path==path: self.tabs.setCurrentIndex(i); return
+        tab=CodeTab(path); self.tabs.addTab(tab,tab.title); self.tabs.setCurrentWidget(tab)
+    def save_code(self):
+        tab=self.tabs.currentWidget()
+        if not isinstance(tab,CodeTab): return
+        if tab.path is None:
+            name,_=QFileDialog.getSaveFileName(self,"Save C++ source","","C++ source (*.cpp *.h *.hpp)")
+            if not name: return
+            tab.path=Path(name)
+        tab.path.write_text(tab.editor.toPlainText(),encoding="utf-8")
+        self.tabs.setTabText(self.tabs.currentIndex(),tab.title); self.log.appendPlainText("Saved "+str(tab.path))
+    def _close_tab(self,index):
+        self.tabs.removeTab(index)
+        if self.tabs.count()==0: self.new_code_tab()
+    def _selection_changed(self):
+        item=self.tree.currentItem()
+        self.object_name.setText(item.text(0) if item else "No object selected")
+    def _transform_changed(self):
+        self.viewport.set_transform([f.value() for f in self.fields])
     def open_obj(self):
-        name,_=QFileDialog.getOpenFileName(self,"Open Wavefront OBJ","","OBJ files (*.obj)")
+        name,_=QFileDialog.getOpenFileName(self,"Import Wavefront OBJ","","OBJ files (*.obj)")
         if not name: return
         try:
-            path=Path(name); data,count=parse_obj(path); self.viewport.set_mesh(data,count); self.asset.setText(path.name)
-            self.tree.topLevelItem(0).addChild(QTreeWidgetItem([path.name])); self.log.appendPlainText(f"Loaded {path.name}: {count} vertices")
+            path=Path(name); data,count=parse_obj(path); self.viewport.set_mesh(data,count)
+            self.tree.topLevelItem(0).addChild(QTreeWidgetItem([path.name]))
+            self.log.appendPlainText(f"Imported {path.name}: {count} triangle vertices")
         except Exception as exc: QMessageBox.critical(self,"OBJ import error",str(exc))
     def choose_exe(self):
         name,_=QFileDialog.getOpenFileName(self,"Select engine executable",str(self.exe.parent),"Executable (*.exe)")
-        if name: self.exe=Path(name); self.log.appendPlainText("Engine: "+str(self.exe))
+        if name: self.exe=Path(name)
     def launch(self):
-        if not self.exe.is_file(): QMessageBox.warning(self,"Engine not found",f"Executable not found: {self.exe}"); return
+        if not self.exe.is_file():
+            QMessageBox.warning(self,"Engine not found",f"Executable not found: {self.exe}"); return
         if self.proc.state()!=QProcess.NotRunning: return
         self.proc.setProgram(str(self.exe)); self.proc.setWorkingDirectory(str(self.exe.parent)); self.proc.start()
         self.log.appendPlainText("Launching "+str(self.exe))
@@ -126,5 +230,5 @@ class Editor(QMainWindow):
 
 def main():
     fmt=QSurfaceFormat(); fmt.setVersion(3,3); fmt.setProfile(QSurfaceFormat.CoreProfile); fmt.setDepthBufferSize(24)
-    QSurfaceFormat.setDefaultFormat(fmt); app=QApplication(sys.argv); win=Editor(); win.show(); return app.exec()
+    QSurfaceFormat.setDefaultFormat(fmt); app=QApplication(sys.argv); editor=Editor(); editor.show(); return app.exec()
 if __name__=="__main__": raise SystemExit(main())
