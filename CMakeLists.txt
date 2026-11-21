@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(FX3.DX12 VERSION 0.3.5 LANGUAGES CXX)
+project(FX3.DX12 VERSION 0.3.6 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "XWe currently supports Windows only.")
@@ -60,6 +60,18 @@ add_library(xwe_engine SHARED
     src/pso_cache.cpp
     src/dxr_pipeline.cpp
     src/xwe_application.cpp
+    src/dx12/DX12Ctx.cpp
+    src/dx12/DX12PiplineStateObject.cpp
+    src/dx12/DX12RendererStateObject.cpp
+    src/dx12/DX12RendererApi.cpp
+    src/dx12/DX12GBuffer.cpp
+    src/dx12/DX12Texture.cpp
+    src/dx12/DX12Materail.cpp
+    src/dx12/DX12Shader.cpp
+    src/dx12/DX12AccelerationStructure.cpp
+    src/dx12/DX12ShaderBindingTable.cpp
+    src/dx12/DX12RaytracingApi.cpp
+    src/dx12/DX12RaytracingDispatch.cpp
 )
 add_dependencies(xwe_engine XWeShaders)
 target_include_directories(xwe_engine PUBLIC include)
