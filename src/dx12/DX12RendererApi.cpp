@@ -14,6 +14,12 @@ HRESULT DX12RendererApi::EndFrame() noexcept { return context_.ExecuteAndSignal(
 HRESULT DX12RendererApi::CreateGraphicsPipeline(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc) noexcept {
     return pipeline_.CreateGraphics(context_.Device(),desc);
 }
+HRESULT DX12RendererApi::CreateComputePipeline(const D3D12_COMPUTE_PIPELINE_STATE_DESC& desc) noexcept {
+    return pipeline_.CreateCompute(context_.Device(),desc);
+}
+HRESULT DX12RendererApi::CreatePipelineStream(ID3D12Device2* device,const D3D12_PIPELINE_STATE_STREAM_DESC& desc) noexcept {
+    return pipeline_.CreateStream(device,desc);
+}
 HRESULT DX12RendererApi::ApplyRendererState() noexcept {
     return state_.Apply(context_.CommandList());
 }
