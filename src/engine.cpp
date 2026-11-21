@@ -8,7 +8,7 @@
 
 #include <array>
 #include <cstddef>
-#include <cmath>
+#include <cmath>\n#include <cstdio>
 #include <cstring>
 #include <iterator>
 #include <cstdint>
