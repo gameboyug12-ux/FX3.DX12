@@ -1,7 +1,7 @@
-#include "fx3/engine.hpp"
-#include "fx3/dx12_features.hpp"
+#include "XWe/Engine.hpp"
+#include "XWe/DX12/Dx12Features.hpp"
 #include "XWe/DX12/PipelineStateCache.hpp"
-#include "fx3/dxr_pipeline.hpp"
+#include "XWe/DX12/DxrPipeline.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
