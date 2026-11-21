@@ -1,6 +1,7 @@
 #pragma once
 #include <QWidget>
 #include <memory>
+class QTimer;
 
 class DXRViewport final : public QWidget {
     Q_OBJECT
@@ -14,4 +15,5 @@ protected:
 private:
     class Renderer;
     std::unique_ptr<Renderer> renderer_;
+    QTimer* renderTimer_ = nullptr;
 };
