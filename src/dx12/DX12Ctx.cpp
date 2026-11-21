@@ -10,6 +10,10 @@ HRESULT DX12Ctx::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue) noe
 }
 HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
     if (!IsInitialized()) return E_UNEXPECTED;
+    if(fence_ && fence_event_) {
+        HRESULT wait_hr=WaitForPreviousSubmission();
+        if(FAILED(wait_hr)) return wait_hr;
+    }
     command_list4_.Reset(); allocator_.Reset(); command_list_.Reset();
     if(fence_event_) { CloseHandle(fence_event_); fence_event_=nullptr; }
     fence_.Reset();
