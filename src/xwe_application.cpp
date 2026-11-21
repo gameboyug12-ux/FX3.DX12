@@ -17,9 +17,7 @@ XWeCreateApplication(const XWeApplicationDesc* desc) {
     try {
         XWe::EngineConfig config{};
         if (desc != nullptr) {
-            if (desc->struct_size < sizeof(XWeApplicationDesc)) {
-                return nullptr;
-            }
+            if (desc->struct_size < sizeof(XWeApplicationDesc)) return nullptr;
             if (desc->window_title != nullptr) config.window_title = desc->window_title;
             if (desc->window_width != 0) config.window_width = desc->window_width;
             if (desc->window_height != 0) config.window_height = desc->window_height;
@@ -48,5 +46,5 @@ XWeDestroyApplication(XWeApplicationHandle application) {
 }
 
 extern "C" XWE_API const wchar_t* XWeGetVersion(void) {
-    return L"0.3.7";
+    return L"0.3.8";
 }
