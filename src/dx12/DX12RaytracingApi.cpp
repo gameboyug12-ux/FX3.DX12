@@ -7,7 +7,7 @@
 namespace XWe::DX::DX12 {
 HRESULT DX12RaytracingApi::Initialize(ID3D12Device* device) noexcept {
     if(!device) return E_INVALIDARG;
-    state_object_.Reset(); properties_.Reset(); device5_.Reset();
+    state_object_.Reset(); properties_.Reset(); global_root_signature_.Reset(); device5_.Reset();
     return device->QueryInterface(IID_PPV_ARGS(&device5_));
 }
 HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
