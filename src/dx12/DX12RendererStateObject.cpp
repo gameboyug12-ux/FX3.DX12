@@ -8,4 +8,10 @@ HRESULT DX12RendererStateObject::Configure(const DX12RendererStateDesc& desc) no
         if (desc.render_target_formats[i] == DXGI_FORMAT_UNKNOWN) return E_INVALIDARG;
     desc_ = desc; configured_ = true; return S_OK;
 }
+HRESULT DX12RendererStateObject::Apply(ID3D12GraphicsCommandList* list) const noexcept {
+    if(!list || !configured_) return E_UNEXPECTED;
+    list->RSSetViewports(1,&desc_.viewport);
+    list->RSSetScissorRects(1,&desc_.scissor);
+    return S_OK;
+}
 }
