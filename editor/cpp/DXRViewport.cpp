@@ -3,6 +3,7 @@
 #include <QShowEvent>
 #include <QResizeEvent>
 #include <QDebug>
+#include <QTimer>
 #include <Windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -28,7 +29,8 @@ constexpr UINT kFrameCount = 2;
 constexpr UINT kDescriptorCount = 2;
 
 ComPtr<ID3D12Resource> makeBuffer(ID3D12Device* device, UINT64 bytes,
-    D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) {
+    D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE,
+    D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS) {
     D3D12_HEAP_PROPERTIES heap{}; heap.Type = heapType;
     heap.CreationNodeMask = 1; heap.VisibleNodeMask = 1;
     D3D12_RESOURCE_DESC desc{}; desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -37,7 +39,7 @@ ComPtr<ID3D12Resource> makeBuffer(ID3D12Device* device, UINT64 bytes,
     ComPtr<ID3D12Resource> resource;
     check(device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc,
         heapType == D3D12_HEAP_TYPE_UPLOAD ? D3D12_RESOURCE_STATE_GENERIC_READ :
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&resource)), "Create buffer");
+        initialState, nullptr, IID_PPV_ARGS(&resource)), "Create buffer");
     return resource;
 }
 void upload(ID3D12Resource* resource, const void* data, size_t bytes) {
@@ -260,7 +262,7 @@ private:
         inputs.Flags=D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info{};
         device_->GetRaytracingAccelerationStructurePrebuildInfo(&inputs,&info);
-        blas_=makeBuffer(device_.Get(),info.ResultDataMaxSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        blas_=makeBuffer(device_.Get(),info.ResultDataMaxSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
         auto scratch=makeBuffer(device_.Get(),info.ScratchDataSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
         check(list_->Reset(allocators_[0].Get(),nullptr),"Reset AS command list");
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC build{};
@@ -282,7 +284,7 @@ private:
         top.Flags=D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO ti{};
         device_->GetRaytracingAccelerationStructurePrebuildInfo(&top,&ti);
-        tlas_=makeBuffer(device_.Get(),ti.ResultDataMaxSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        tlas_=makeBuffer(device_.Get(),ti.ResultDataMaxSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
         auto topScratch=makeBuffer(device_.Get(),ti.ScratchDataSizeInBytes,D3D12_HEAP_TYPE_DEFAULT,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
         build={}; build.Inputs=top; build.DestAccelerationStructureData=tlas_->GetGPUVirtualAddress();
         build.ScratchAccelerationStructureData=topScratch->GetGPUVirtualAddress();
@@ -327,13 +329,18 @@ private:
 };
 
 DXRViewport::DXRViewport(QWidget* parent) : QWidget(parent), renderer_(std::make_unique<Renderer>()) {
+    renderTimer_ = new QTimer(this);
+    connect(renderTimer_, &QTimer::timeout, this, [this] {
+        try { renderer_->render(); }
+        catch (const std::exception& e) { renderTimer_->stop(); qCritical() << "DXR render failed:" << e.what(); }
+    });
     setAttribute(Qt::WA_NativeWindow); setAttribute(Qt::WA_PaintOnScreen);
     setAttribute(Qt::WA_NoSystemBackground); setMinimumSize(480,320);
 }
 DXRViewport::~DXRViewport() = default;
 void DXRViewport::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
-    try { renderer_->initialize(reinterpret_cast<HWND>(winId()),width(),height()); }
+    try { renderer_->initialize(reinterpret_cast<HWND>(winId()),width(),height()); renderTimer_->start(16); }
     catch(const std::exception& e) { qCritical() << "DXR viewport initialization failed:" << e.what(); }
 }
 void DXRViewport::resizeEvent(QResizeEvent* event) {
