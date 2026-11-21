@@ -113,7 +113,7 @@ public:
         const Dx12FeatureReport features = QueryDx12Features(device_.Get());
         char feature_line[256]{};
         std::snprintf(feature_line, sizeof(feature_line),
-            "[FX3] DXR tier=%u | Mesh shader tier=%u | Sampler feedback tier=%u | Enhanced barriers=%s | VRS=%s\\n",
+            "[FX3] DXR tier=%u | Mesh shader tier=%u | Sampler feedback tier=%u | Enhanced barriers=%s | VRS=%s\n",
             static_cast<unsigned>(features.raytracing_tier),
             static_cast<unsigned>(features.mesh_shader_tier),
             static_cast<unsigned>(features.sampler_feedback_tier),
@@ -124,14 +124,14 @@ public:
             try {
                 const std::wstring dxr_shader = std::wstring(FX3_SHADER_DIR) + L"\\pathtrace.dxil";
                 if (dxr_pipeline_.Initialize(device_.Get(), dxr_shader)) {
-                    OutputDebugStringA("[FX3] DXR state object created; dispatch is not enabled yet.\\n");
+                    OutputDebugStringA("[FX3] DXR state object created; dispatch is not enabled yet.\n");
                 }
             } catch (const std::exception& error) {
-                const std::string warning = std::string("[FX3] DXR setup failed; raster fallback: ") + error.what() + "\\n";
+                const std::string warning = std::string("[FX3] DXR setup failed; raster fallback: ") + error.what() + "\n";
                 OutputDebugStringA(warning.c_str());
             }
         } else {
-            OutputDebugStringA("[FX3] DXR unsupported; using raster fallback.\\n");
+            OutputDebugStringA("[FX3] DXR unsupported; using raster fallback.\n");
         }
 
         D3D12_COMMAND_QUEUE_DESC queue_desc{};
