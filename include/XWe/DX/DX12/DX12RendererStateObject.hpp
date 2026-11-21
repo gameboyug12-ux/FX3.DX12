@@ -15,6 +15,7 @@ struct DX12RendererStateDesc {
 class DX12RendererStateObject final {
 public:
     HRESULT Configure(const DX12RendererStateDesc& desc) noexcept;
+    HRESULT Apply(ID3D12GraphicsCommandList* command_list) const noexcept;
     const DX12RendererStateDesc& Description() const noexcept { return desc_; }
     bool IsConfigured() const noexcept { return configured_; }
 private:
