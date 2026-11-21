@@ -4,7 +4,7 @@
 
 namespace XWe::DX::DX12 {
 HRESULT DX12AccelerationStructure::CreateShaderResourceView(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE handle) const noexcept {
-    if(!device || !result_ || !handle.ptr) return E_INVALIDARG;
+    if(!device || !result_ || !top_level_ || !handle.ptr) return E_INVALIDARG;
     D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
     desc.ViewDimension=D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
     desc.Shader4ComponentMapping=D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -26,7 +26,7 @@ HRESULT DX12AccelerationStructure::BuildBottomLevel(ID3D12Device5* device,
     ID3D12GraphicsCommandList4* list,const D3D12_RAYTRACING_GEOMETRY_DESC* geometries,
     UINT count,D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS flags) noexcept {
     if(!device || !list || !geometries || !count) return E_INVALIDARG;
-    result_.Reset(); scratch_.Reset();
+    result_.Reset(); scratch_.Reset(); top_level_=false;
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
     inputs.Type=D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
     inputs.DescsLayout=D3D12_ELEMENTS_LAYOUT_ARRAY; inputs.NumDescs=count;
@@ -50,7 +50,7 @@ HRESULT DX12AccelerationStructure::BuildTopLevel(ID3D12Device5* device,
     ID3D12GraphicsCommandList4* list,const D3D12_RAYTRACING_INSTANCE_DESC* instances,
     UINT count,D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS flags) noexcept {
     if(!device || !list || !instances || !count) return E_INVALIDARG;
-    result_.Reset(); scratch_.Reset(); instance_upload_.Reset();
+    result_.Reset(); scratch_.Reset(); instance_upload_.Reset(); top_level_=false;
     const UINT64 bytes=static_cast<UINT64>(sizeof(D3D12_RAYTRACING_INSTANCE_DESC))*count;
     D3D12_HEAP_PROPERTIES upload{}; upload.Type=D3D12_HEAP_TYPE_UPLOAD; upload.CreationNodeMask=1; upload.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC buffer{}; buffer.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -81,6 +81,7 @@ HRESULT DX12AccelerationStructure::BuildTopLevel(ID3D12Device5* device,
     list->BuildRaytracingAccelerationStructure(&build,0,nullptr);
     D3D12_RESOURCE_BARRIER barrier{}; barrier.Type=D3D12_RESOURCE_BARRIER_TYPE_UAV;
     barrier.UAV.pResource=result_.Get(); list->ResourceBarrier(1,&barrier);
+    top_level_=true;
     return S_OK;
 }
 }
