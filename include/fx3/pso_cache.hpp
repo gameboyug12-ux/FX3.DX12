@@ -1,7 +1,8 @@
 #pragma once
 #include <d3d12.h>
 #include <wrl/client.h>
-#include <cstddef>\n#include <string>
+#include <cstddef>
+#include <string>
 #include <unordered_map>
 namespace fx3 {
 class GraphicsPsoCache final {
