@@ -1,6 +1,7 @@
 #include "XWe/DX/DX12/DX12Ctx.hpp"
 namespace XWe::DX::DX12 {
 DX12Ctx::~DX12Ctx() {
+    if (fence_ && fence_event_) WaitForPreviousSubmission();
     if (fence_event_) CloseHandle(fence_event_);
 }
 HRESULT DX12Ctx::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue) noexcept {
