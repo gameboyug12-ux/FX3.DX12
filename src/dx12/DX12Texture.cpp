@@ -22,4 +22,7 @@ void DX12Texture::CreateRTV(ID3D12Device* d,D3D12_CPU_DESCRIPTOR_HANDLE h,const 
 void DX12Texture::CreateDSV(ID3D12Device* d,D3D12_CPU_DESCRIPTOR_HANDLE h,const D3D12_DEPTH_STENCIL_VIEW_DESC* v) const noexcept {
     if(d && resource_) d->CreateDepthStencilView(resource_.Get(),v,h);
 }
+void DX12Texture::CreateUAV(ID3D12Device* d,D3D12_CPU_DESCRIPTOR_HANDLE h,const D3D12_UNORDERED_ACCESS_VIEW_DESC* v) const noexcept {
+    if(d && resource_) d->CreateUnorderedAccessView(resource_.Get(),nullptr,v,h);
+}
 }
