@@ -2,6 +2,13 @@
 
 FX3.DX12 is a standalone Windows engine and Direct3D 12 renderer. Game-specific gameplay, levels and assets belong in separate game projects.
 
+## 0.3.4 — XWe Java API specification
+
+- Added `src/xwe/java/api/java.txt` with the Java-facing API contract.
+- Defines Java 22+ Foreign Function & Memory (Panama) integration with the existing XWe C ABI.
+- Bumped CMake project and exported `XWeGetVersion()` to 0.3.4.
+- Java classes and native downcalls are specified, not yet implemented.
+
 ## 0.3.3 — DX12 Ultimate, DXR/PT foundation and PSO cache
 
 - DX12 optional feature probing (DXR, mesh shaders, sampler feedback, enhanced barriers, VRS)
@@ -41,7 +48,7 @@ The build produces `main.exe` and `xwe_engine.dll` in the build output directory
 
 ## XWe DLL API
 
-Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`.
+Include `XWeApplication.h`, link against `xwe_engine.lib`, and deploy `xwe_engine.dll` beside the game executable. The C ABI exports create, run, destroy and version functions. See `docs/0.3.2-EDITOR-AND-DLL.md`. The Java integration contract is in `src/xwe/java/api/java.txt`.
 
 ## Rendering status
 
