@@ -58,8 +58,6 @@ add_library(xwe_engine SHARED
     src/dx12_features.cpp
     src/pso_cache.cpp
     src/xwe_application.cpp
-    src/dx12_features.cpp
-    src/pso_cache.cpp
 )
 add_dependencies(xwe_engine FX3Shaders)
 target_include_directories(xwe_engine PUBLIC include)
