@@ -76,7 +76,7 @@ bool DxrPipeline::Initialize(ID3D12Device* device, const std::wstring& path) {
     D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
     pipeline_config.MaxTraceRecursionDepth = 1;
 
-    const wchar_t* shader_exports[] = {L"RayGen", L"Miss", L"ClosestHit"};
+    const wchar_t* shader_exports[] = {L"RayGen", L"Miss", L"ClosestHit", L"TriangleHitGroup"};
     D3D12_STATE_SUBOBJECT subobjects[6]{};
     subobjects[0] = {D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &library_desc};
     subobjects[1] = {D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hit_group};
