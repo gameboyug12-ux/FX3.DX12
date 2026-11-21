@@ -88,6 +88,17 @@ set(XWE_JAVA_API_SOURCES
     src/xwe/java/api/XWeVersion.java
 )
 add_custom_target(XWeJavaApi SOURCES ${XWE_JAVA_API_SOURCES})
+find_package(Java 22 COMPONENTS Development QUIET)
+if(Java_FOUND)
+    add_custom_target(XWeJavaCompile
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_BINARY_DIR}/java"
+        COMMAND "${Java_JAVAC_EXECUTABLE}" --release 22
+                -d "${CMAKE_BINARY_DIR}/java" ${XWE_JAVA_API_SOURCES}
+        DEPENDS ${XWE_JAVA_API_SOURCES}
+        COMMENT "Compiling XWe Java 22 Panama API"
+        VERBATIM
+    )
+endif()
 
 if(MSVC)
     foreach(TARGET xwe_engine FX3DX12)
