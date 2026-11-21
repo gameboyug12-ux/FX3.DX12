@@ -11,6 +11,8 @@ HRESULT DX12Ctx::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue) noe
 HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
     if (!IsInitialized()) return E_UNEXPECTED;
     command_list4_.Reset(); allocator_.Reset(); command_list_.Reset();
+    if(fence_event_) { CloseHandle(fence_event_); fence_event_=nullptr; }
+    fence_.Reset();
     HRESULT hr = device_->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator_));
     if (FAILED(hr)) return hr;
     hr = device_->CreateCommandList(0, type, allocator_.Get(), nullptr, IID_PPV_ARGS(&command_list_));
@@ -23,7 +25,9 @@ HRESULT DX12Ctx::CreateCommandObjects(D3D12_COMMAND_LIST_TYPE type) noexcept {
 }
 HRESULT DX12Ctx::WaitForPreviousSubmission() noexcept {
     if(!fence_ || !fence_event_) return E_UNEXPECTED;
-    if(fence_->GetCompletedValue()>=fence_value_) return S_OK;
+    const UINT64 completed=fence_->GetCompletedValue();
+    if(completed==UINT64_MAX) return DXGI_ERROR_DEVICE_REMOVED;
+    if(completed>=fence_value_) return S_OK;
     HRESULT hr=fence_->SetEventOnCompletion(fence_value_,fence_event_);
     if(FAILED(hr)) return hr;
     return WaitForSingleObject(fence_event_,INFINITE)==WAIT_OBJECT_0?S_OK:E_FAIL;
