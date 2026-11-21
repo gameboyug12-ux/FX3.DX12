@@ -27,6 +27,15 @@ HRESULT DX12GBuffer::CreateViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDL
     if(!depth_) return E_UNEXPECTED;
     depth_.CreateDSV(device,dsv); return S_OK;
 }
+HRESULT DX12GBuffer::TransitionTargets(ID3D12GraphicsCommandList* list,
+    D3D12_RESOURCE_STATES before,D3D12_RESOURCE_STATES after) const noexcept {
+    if(!list || !width_ || !height_) return E_INVALIDARG;
+    for(const auto& target:targets_) {
+        HRESULT hr=target.Transition(list,before,after);
+        if(FAILED(hr)) return hr;
+    }
+    return S_OK;
+}
 HRESULT DX12GBuffer::CreateShaderViews(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE srv,
     UINT increment) const noexcept {
     if(!device || !increment || !width_ || !height_) return E_INVALIDARG;
