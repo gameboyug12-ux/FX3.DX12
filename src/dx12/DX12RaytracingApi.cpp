@@ -20,18 +20,23 @@ HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
         file.seekg(0); file.read(reinterpret_cast<char*>(code.data()),length);
         if(!file) return E_FAIL;
 
-        D3D12_DESCRIPTOR_RANGE range{}; range.RangeType=D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        range.NumDescriptors=1; range.BaseShaderRegister=0; range.OffsetInDescriptorsFromTableStart=D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-        D3D12_ROOT_PARAMETER param{}; param.ParameterType=D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        param.DescriptorTable.NumDescriptorRanges=1; param.DescriptorTable.pDescriptorRanges=&range;
-        param.ShaderVisibility=D3D12_SHADER_VISIBILITY_ALL;
-        D3D12_ROOT_SIGNATURE_DESC root_desc{}; root_desc.NumParameters=1; root_desc.pParameters=&param;
+        D3D12_DESCRIPTOR_RANGE ranges[2]{};
+        ranges[0].RangeType=D3D12_DESCRIPTOR_RANGE_TYPE_SRV; ranges[0].NumDescriptors=1;
+        ranges[0].BaseShaderRegister=0; ranges[0].OffsetInDescriptorsFromTableStart=D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+        ranges[1].RangeType=D3D12_DESCRIPTOR_RANGE_TYPE_UAV; ranges[1].NumDescriptors=1;
+        ranges[1].BaseShaderRegister=0; ranges[1].OffsetInDescriptorsFromTableStart=D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+        D3D12_ROOT_PARAMETER params[2]{};
+        for(UINT i=0;i<2;++i) { params[i].ParameterType=D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            params[i].DescriptorTable.NumDescriptorRanges=1; params[i].DescriptorTable.pDescriptorRanges=&ranges[i];
+            params[i].ShaderVisibility=D3D12_SHADER_VISIBILITY_ALL; }
+        D3D12_ROOT_SIGNATURE_DESC root_desc{}; root_desc.NumParameters=2; root_desc.pParameters=params;
         Microsoft::WRL::ComPtr<ID3DBlob> root_blob, errors;
         HRESULT hr=D3D12SerializeRootSignature(&root_desc,D3D_ROOT_SIGNATURE_VERSION_1,&root_blob,&errors);
         if(FAILED(hr)) return hr;
         Microsoft::WRL::ComPtr<ID3D12RootSignature> root;
         hr=device5_->CreateRootSignature(0,root_blob->GetBufferPointer(),root_blob->GetBufferSize(),IID_PPV_ARGS(&root));
         if(FAILED(hr)) return hr;
+        global_root_signature_=root;
 
         D3D12_EXPORT_DESC exports[]={{L"RayGen",nullptr,D3D12_EXPORT_FLAG_NONE},
             {L"Miss",nullptr,D3D12_EXPORT_FLAG_NONE},{L"ClosestHit",nullptr,D3D12_EXPORT_FLAG_NONE}};
