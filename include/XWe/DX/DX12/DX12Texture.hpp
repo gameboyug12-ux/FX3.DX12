@@ -16,6 +16,8 @@ public:
         const D3D12_DEPTH_STENCIL_VIEW_DESC* description = nullptr) const noexcept;
     void CreateUAV(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE destination,
         const D3D12_UNORDERED_ACCESS_VIEW_DESC* description = nullptr) const noexcept;
+    HRESULT Transition(ID3D12GraphicsCommandList* command_list,
+        D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const noexcept;
     ID3D12Resource* Get() const noexcept { return resource_.Get(); }
     const D3D12_RESOURCE_DESC& Description() const noexcept { return desc_; }
     void Reset() noexcept { resource_.Reset(); desc_ = {}; }
