@@ -12,6 +12,7 @@ public:
     HRESULT BeginFrame() noexcept;
     HRESULT EndFrame() noexcept;
     HRESULT CreateGraphicsPipeline(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& description) noexcept;
+    HRESULT ApplyRendererState() noexcept;
     HRESULT InitializeRaytracing() noexcept;
     HRESULT CreateRaytracingPipeline(const std::wstring& dxil_library_path) noexcept;
     DX12Ctx& Context() noexcept { return context_; }
