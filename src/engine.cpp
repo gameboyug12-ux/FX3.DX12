@@ -77,7 +77,7 @@ class D3D12Renderer final {
 public:
     void Initialize(HWND window, UINT width, UINT height, bool enable_debug) {
         UINT factory_flags = 0;
-#ifdef FX3_DEBUG
+#ifdef XWE_DEBUG
         if (enable_debug) {
             ComPtr<ID3D12Debug> debug_controller;
             if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller)))) {
