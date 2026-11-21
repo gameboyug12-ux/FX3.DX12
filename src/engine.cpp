@@ -1,4 +1,6 @@
-#include "fx3/engine.hpp"\n#include "fx3/dx12_features.hpp"\n#include "fx3/pso_cache.hpp"
+#include "fx3/engine.hpp"
+#include "fx3/dx12_features.hpp"
+#include "fx3/pso_cache.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -8,7 +10,8 @@
 
 #include <array>
 #include <cstddef>
-#include <cmath>\n#include <cstdio>
+#include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <iterator>
 #include <cstdint>
@@ -106,6 +109,16 @@ public:
         ThrowIfFailed(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0,
                                         IID_PPV_ARGS(&device_)),
                       "D3D12CreateDevice");
+
+        const Dx12FeatureReport features = QueryDx12Features(device_.Get());
+        char feature_line[256]{};
+        sprintf_s(feature_line, "[FX3] DXR tier=%u | Mesh shader tier=%u | Sampler feedback tier=%u | Enhanced barriers=%s | VRS=%s\n",
+                  static_cast<unsigned>(features.raytracing_tier),
+                  static_cast<unsigned>(features.mesh_shader_tier),
+                  static_cast<unsigned>(features.sampler_feedback_tier),
+                  features.enhanced_barriers ? "yes" : "no",
+                  features.variable_rate_shading ? "yes" : "no");
+        OutputDebugStringA(feature_line);
 
         D3D12_COMMAND_QUEUE_DESC queue_desc{};
         queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -487,8 +500,7 @@ private:
         pso.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         pso.SampleDesc.Count = 1;
-        ThrowIfFailed(device_->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&pipeline_)),
-                      "Create graphics pipeline state");
+        pipeline_ = pso_cache_.GetOrCreate(device_.Get(), "mesh.raster.default.v1", pso);
     }
 
     void UpdateFrameConstants() {
@@ -543,7 +555,8 @@ private:
     ComPtr<ID3D12GraphicsCommandList> command_list_;
     ComPtr<ID3D12Fence> fence_;
     ComPtr<ID3D12RootSignature> root_signature_;
-    ComPtr<ID3D12PipelineState> pipeline_;\n    GraphicsPsoCache pso_cache_;
+    ComPtr<ID3D12PipelineState> pipeline_;
+    GraphicsPsoCache pso_cache_;
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> constant_buffers_{};
