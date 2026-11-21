@@ -1,5 +1,22 @@
 # FX3.DX12
 
+## 0.3.6 — DX12 object model and raytracing API
+
+- Added the eight requested public DX12 objects under `XWe::DX::DX12`, each
+  with its own header, plus an umbrella `DX12.hpp`.
+- Added DX12 context, fence-safe single-list submission, graphics/compute/
+  stream PSO object, renderer state, renderer API, textures, material,
+  shader bytecode and GBuffer resources/views/transitions.
+- Added a starter DXR API: BLAS/TLAS builders, raytracing state object,
+  aligned shader binding table and descriptor-bound `DispatchRays`.
+- Updated the path-tracing shader to write its result to a UAV texture.
+- Bumped CMake and native DLL version to 0.3.6.
+
+See `docs/0.3.6-DX12-OBJECT-MODEL-AND-RT-API.md` for object responsibilities,
+RT workflow, ownership rules and current limitations. This is an API and
+implementation foundation; the existing sample renderer does not yet execute
+the new DXR dispatch path automatically.
+
 ## 0.3.5 — XWe standard API, Java Panama and PSO foundation
 
 - Implemented Java 22+ Panama FFM bindings for `xwe_engine.dll` (no JNI).
