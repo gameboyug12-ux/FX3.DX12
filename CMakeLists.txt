@@ -57,6 +57,37 @@ add_custom_command(
 list(APPEND XWE_SHADER_BINARIES "${XWE_DXR_SHADER}")
 add_custom_target(XWeShaders DEPENDS ${XWE_SHADER_BINARIES})
 
+# Public API headers are listed for IDE/source-package visibility.
+set(XWE_PUBLIC_HEADERS
+    include/XWe/Application.h
+    include/XWeApplication.h
+    include/XWe/Engine.hpp
+    include/XWe/RenderFeatures.hpp
+    include/XWe/DX12/Dx12Features.hpp
+    include/XWe/DX12/DxrPipeline.hpp
+    include/XWe/DX12/PipelineStateCache.hpp
+    include/XWe/DX/DX12/DX12.hpp
+    include/XWe/DX/DX12/DX12AccelerationStructure.hpp
+    include/XWe/DX/DX12/DX12Ctx.hpp
+    include/XWe/DX/DX12/DX12GBuffer.hpp
+    include/XWe/DX/DX12/DX12Materail.hpp
+    include/XWe/DX/DX12/DX12PiplineStateObject.hpp
+    include/XWe/DX/DX12/DX12RaytracingApi.hpp
+    include/XWe/DX/DX12/DX12RaytracingDispatch.hpp
+    include/XWe/DX/DX12/DX12RendererApi.hpp
+    include/XWe/DX/DX12/DX12RendererStateObject.hpp
+    include/XWe/DX/DX12/DX12Shader.hpp
+    include/XWe/DX/DX12/DX12ShaderBindingTable.hpp
+    include/XWe/DX/DX12/DX12Texture.hpp
+    include/XWe/ShadowTracer/DX12/DX12ShadowTrace.hpp
+    include/fx3/dx12_features.hpp
+    include/fx3/dxr_pipeline.hpp
+    include/fx3/engine.hpp
+    include/fx3/pso_cache.hpp
+    include/fx3/psopt.hpp
+    include/fx3/render_features.hpp
+)
+
 add_library(xwe_engine SHARED
     src/engine.cpp
     src/dx12_features.cpp
@@ -75,6 +106,7 @@ add_library(xwe_engine SHARED
     src/dx12/DX12ShaderBindingTable.cpp
     src/dx12/DX12RaytracingApi.cpp
     src/dx12/DX12RaytracingDispatch.cpp
+    ${XWE_PUBLIC_HEADERS}
 )
 add_dependencies(xwe_engine XWeShaders)
 target_include_directories(xwe_engine PUBLIC include)
