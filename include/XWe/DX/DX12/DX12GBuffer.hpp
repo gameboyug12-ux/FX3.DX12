@@ -12,6 +12,8 @@ public:
         UINT rtv_increment, D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle) const noexcept;
     HRESULT CreateShaderViews(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srv_start,
         UINT srv_increment) const noexcept;
+    HRESULT TransitionTargets(ID3D12GraphicsCommandList* command_list,
+        D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const noexcept;
     void Reset() noexcept;
     DX12Texture* Get(DX12GBufferSlot slot) noexcept;
     const DX12Texture* Get(DX12GBufferSlot slot) const noexcept;
