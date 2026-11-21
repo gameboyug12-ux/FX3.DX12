@@ -1,5 +1,5 @@
 #include "fx3/dx12_features.hpp"
-namespace fx3 {
+namespace XWe {
 Dx12FeatureReport QueryDx12Features(ID3D12Device* device) {
  Dx12FeatureReport report{};
  if (!device) return report;
@@ -15,4 +15,4 @@ Dx12FeatureReport QueryDx12Features(ID3D12Device* device) {
  if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS6,&o6,sizeof(o6)))) report.variable_rate_shading=o6.VariableShadingRateTier!=D3D12_VARIABLE_SHADING_RATE_TIER_NOT_SUPPORTED;
  return report;
 }
-} // namespace fx3
+} // namespace XWe
