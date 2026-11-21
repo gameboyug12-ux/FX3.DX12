@@ -16,12 +16,13 @@ public:
     ID3D12Resource* Result() const noexcept { return result_.Get(); }
     D3D12_GPU_VIRTUAL_ADDRESS Address() const noexcept { return result_ ? result_->GetGPUVirtualAddress() : 0; }
     HRESULT CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE destination) const noexcept;
-    void Reset() noexcept { result_.Reset(); scratch_.Reset(); instance_upload_.Reset(); }
+    void Reset() noexcept { result_.Reset(); scratch_.Reset(); instance_upload_.Reset(); top_level_ = false; }
 private:
     HRESULT AllocateBuffer(ID3D12Device* device, UINT64 size, D3D12_RESOURCE_STATES state,
                            Microsoft::WRL::ComPtr<ID3D12Resource>& output) noexcept;
     Microsoft::WRL::ComPtr<ID3D12Resource> result_;
     Microsoft::WRL::ComPtr<ID3D12Resource> scratch_;
     Microsoft::WRL::ComPtr<ID3D12Resource> instance_upload_;
+    bool top_level_ = false;
 };
 }
