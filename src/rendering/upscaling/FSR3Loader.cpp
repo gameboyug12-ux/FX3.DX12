@@ -6,11 +6,6 @@
 namespace XWe::Rendering::Upscaling {
 namespace {
 
-constexpr DWORD kLoadFlags =
-    LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR |
-    LOAD_LIBRARY_SEARCH_USER_DIRS |
-    LOAD_LIBRARY_SEARCH_SYSTEM32;
-
 struct ExportRequirement final {
     FSR3Loader::Module module;
     const char* name;
@@ -74,7 +69,7 @@ void FSR3Loader::SetWin32Error(
 
 bool FSR3Loader::LoadModule(Module module, const wchar_t* file_name) {
     const auto path = dll_directory_ / file_name;
-    HMODULE handle = LoadLibraryExW(path.c_str(), nullptr, kLoadFlags);
+    HMODULE handle = LoadLibraryExW(path.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
     if (handle == nullptr) {
         SetWin32Error(L"LoadLibraryExW", path);
         return false;
@@ -113,13 +108,6 @@ bool FSR3Loader::Initialize(const std::filesystem::path& dll_directory) {
         return false;
     }
 
-    directory_cookie_ = AddDllDirectory(dll_directory_.c_str());
-    if (directory_cookie_ == nullptr) {
-        SetWin32Error(L"AddDllDirectory", dll_directory_);
-        Shutdown();
-        return false;
-    }
-
     // Load dependencies before the top-level FSR3 module.
     if (!LoadModule(Module::Upscaler, L"ffx_fsr3upscaler_x64.dll") ||
         !LoadModule(Module::OpticalFlow, L"ffx_opticalflow_x64.dll") ||
@@ -155,10 +143,6 @@ void FSR3Loader::Shutdown() noexcept {
         }
     }
 
-    if (directory_cookie_ != nullptr) {
-        RemoveDllDirectory(directory_cookie_);
-        directory_cookie_ = nullptr;
-    }
 }
 
 } // namespace XWe::Rendering::Upscaling
