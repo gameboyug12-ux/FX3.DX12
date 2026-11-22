@@ -16,14 +16,16 @@ AMD import libraries and does not require AMD DLLs at build time.
 ## Current integration level
 
 Version 0.3.9 adds runtime discovery, dependency loading and export validation.
-It verifies the FSR 3 upscaler, optical-flow, frame-interpolation and DX12 backend
-entry points observed in the supplied DLL export tables.
+It checks for the expected FSR 3 upscaler, optical-flow, frame-interpolation and
+DX12 backend export names. The supplied DLL export tables have not yet been inspected,
+so a mismatch between this expected symbol set and the installed SDK build will be
+reported as a missing export.
 
 This is a loader milestone, not a claim that GPU upscaling or generated-frame
 presentation is already active. FSR 3's legacy API takes version-specific context
 descriptions, callback tables, resource descriptors and DX12 interface structures.
 The exact SDK headers/build identity for the supplied DLL set have not yet been
-established. The engine therefore does not cast or invoke unverified function pointers.
+established. The loader header lives under include/XWe/Rendering/Upscaling. The engine therefore does not cast or invoke unverified function pointers.
 
 Before enabling dispatch, match the DLL build to its AMD SDK headers and wire:
 - render-resolution and jitter updates into the camera;
