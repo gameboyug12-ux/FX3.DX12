@@ -21,7 +21,7 @@ LRESULT CALLBACK WindowProc(HWND h, UINT m, WPARAM w, LPARAM l) {
     return DefWindowProcW(h,m,w,l);
 }
 ComPtr<ID3D12Resource> Buffer(ID3D12Device* d, UINT64 size, D3D12_HEAP_TYPE heap) {
-    D3D12_HEAP_PROPERTIES hp{}; hp.Type=heap;
+    D3D12_HEAP_PROPERTIES hp{}; hp.Type=heap; hp.CreationNodeMask=1; hp.VisibleNodeMask=1;
     D3D12_RESOURCE_DESC rd{}; rd.Dimension=D3D12_RESOURCE_DIMENSION_BUFFER; rd.Width=size;
     rd.Height=1; rd.DepthOrArraySize=1; rd.MipLevels=1; rd.SampleDesc.Count=1;
     rd.Layout=D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
@@ -83,7 +83,7 @@ int RunRenderer(HINSTANCE instance, int show, const Mesh& mesh, const Texture& t
     D3D12_RESOURCE_DESC depthDesc{}; depthDesc.Dimension=D3D12_RESOURCE_DIMENSION_TEXTURE2D; depthDesc.Width=1280; depthDesc.Height=720;
     depthDesc.DepthOrArraySize=1; depthDesc.MipLevels=1; depthDesc.Format=DXGI_FORMAT_D32_FLOAT; depthDesc.SampleDesc.Count=1; depthDesc.Flags=D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     D3D12_CLEAR_VALUE depthClear{}; depthClear.Format=DXGI_FORMAT_D32_FLOAT; depthClear.DepthStencil.Depth=1.0f;
-    D3D12_HEAP_PROPERTIES defaultHeap{}; defaultHeap.Type=D3D12_HEAP_TYPE_DEFAULT;
+    D3D12_HEAP_PROPERTIES defaultHeap{}; defaultHeap.Type=D3D12_HEAP_TYPE_DEFAULT; defaultHeap.CreationNodeMask=1; defaultHeap.VisibleNodeMask=1;
     ComPtr<ID3D12Resource> depth;
     Check(device->CreateCommittedResource(&defaultHeap,D3D12_HEAP_FLAG_NONE,&depthDesc,D3D12_RESOURCE_STATE_DEPTH_WRITE,&depthClear,IID_PPV_ARGS(&depth)),"Create depth buffer failed");
     device->CreateDepthStencilView(depth.Get(),nullptr,dsvHeap->GetCPUDescriptorHandleForHeapStart());
