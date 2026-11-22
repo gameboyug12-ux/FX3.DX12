@@ -29,7 +29,7 @@ All integer fields are little-endian. Pixel data is tightly packed row-major RGB
 | 12 | uint32 | Height |
 | 16 | width × height × 4 bytes | RGBA8 pixel payload |
 
-The loader rejects zero/oversized dimensions and truncated payloads. v0.4 supports one mip level, uncompressed RGBA8, and a 512 MiB payload limit.
+The loader rejects zero/oversized dimensions and truncated payloads. v0.4 supports one mip level, uncompressed RGBA8, and a 512 MiB payload limit. Convert a binary PPM (P6, max value 255) with `python tools/ppm_to_fxtex.py input.ppm assets/albedo.fxtex`.
 
 ## Build
 
