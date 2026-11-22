@@ -59,11 +59,12 @@ HMODULE FSR3Loader::GetModule(Module module) const noexcept {
 void FSR3Loader::SetWin32Error(
     const wchar_t* operation,
     const std::filesystem::path& path) {
+    const DWORD error = GetLastError();
     last_error_ = operation;
     last_error_ += L" failed for ";
     last_error_ += path.wstring();
     last_error_ += L" (Win32 error ";
-    last_error_ += std::to_wstring(GetLastError());
+    last_error_ += std::to_wstring(error);
     last_error_ += L")";
 }
 
