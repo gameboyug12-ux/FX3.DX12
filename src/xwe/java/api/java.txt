@@ -1,0 +1,55 @@
+XWe 0.3.5 — Java Panama API
+===========================
+
+Status
+------
+Implemented Java 22+ Foreign Function & Memory API bindings are provided as
+Java source files in this directory. This file remains a concise API index.
+
+Package: xwe.java.api
+Platform: Windows x64
+Native library: xwe_engine.dll
+Interop: java.lang.foreign (JDK 22+); JNI is not used.
+
+Public classes
+--------------
+XWeApplicationDesc
+  Immutable title, width, height and debug-layer configuration.
+
+XWeApplication
+  static XWeApplication create(XWeApplicationDesc desc)
+  int run()
+  boolean isOpen()
+  void close()
+  Implements AutoCloseable. Owns the native handle and keeps the UTF-16
+  title allocation alive until XWeDestroyApplication has completed.
+
+XWeVersion
+  static String get()
+
+XWeException
+  Runtime exception for native library loading and downcall failures.
+
+Native ABI
+----------
+XWeApplicationHandle XWeCreateApplication(const XWeApplicationDesc* desc);
+int32_t XWeRunApplication(XWeApplicationHandle application);
+void XWeDestroyApplication(XWeApplicationHandle application);
+const wchar_t* XWeGetVersion(void);
+
+The FFM struct layout matches the Windows x64 ABI: 32-byte structure,
+pointer at offset 8, and 16-bit wchar_t title storage. The Java wrapper
+retains the Arena for the full native application lifetime because Engine
+stores the title pointer until the Win32 window is created.
+
+Build
+-----
+javac --release 22 -d build\java src\xwe\java\api\*.java
+
+Run with:
+java --enable-native-access=ALL-UNNAMED
+     -Dxwe.library="C:\path\to\xwe_engine.dll"
+     -cp build\java YourGameMainClass
+
+See docs/0.3.5-JAVA-PANAMA-AND-PSO-API.md for the full interop and lifecycle
+contract.
