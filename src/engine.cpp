@@ -2,6 +2,7 @@
 #include "XWe/DX12/Dx12Features.hpp"
 #include "XWe/DX12/PipelineStateCache.hpp"
 #include "XWe/DX12/DxrPipeline.hpp"
+#include "XWe/Rendering/Upscaling/FSR3Loader.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -31,6 +32,17 @@ namespace {
 
 constexpr UINT kFrameCount = 2;
 constexpr UINT kConstantBufferAlignment = 256;
+
+std::filesystem::path GetExecutableDirectory() {
+    std::wstring executable_path(32768, L'\\0');
+    const DWORD length = GetModuleFileNameW(
+        nullptr, executable_path.data(), static_cast<DWORD>(executable_path.size()));
+    if (length == 0 || length >= executable_path.size()) {
+        return std::filesystem::current_path();
+    }
+    executable_path.resize(length);
+    return std::filesystem::path(executable_path).parent_path();
+}
 
 [[noreturn]] void ThrowIfFailed(HRESULT result, const char* operation) {
     if (FAILED(result)) {
@@ -76,6 +88,24 @@ constexpr UINT AlignConstantBufferSize(UINT size) {
 class D3D12Renderer final {
 public:
     void Initialize(HWND window, UINT width, UINT height, bool enable_debug) {
+#ifdef FX3_ENABLE_FSR3
+        const auto fsr3_directory =
+            GetExecutableDirectory() / L"third_party" / L"FSR";
+        std::error_code fsr3_path_error;
+        if (std::filesystem::is_directory(fsr3_directory, fsr3_path_error) &&
+            !fsr3_path_error) {
+            if (fsr3_loader_.Initialize(fsr3_directory)) {
+                OutputDebugStringA(
+                    "[XWe] FSR3 runtime DLLs loaded and exports validated; "
+                    "GPU dispatch is not enabled yet.\\n");
+            } else {
+                std::wstring warning = L"[XWe] FSR3 runtime unavailable: ";
+                warning += fsr3_loader_.LastError();
+                warning += L"\\n";
+                OutputDebugStringW(warning.c_str());
+            }
+        }
+#endif
         UINT factory_flags = 0;
 #ifdef XWE_DEBUG
         if (enable_debug) {
@@ -575,6 +605,7 @@ private:
     ComPtr<ID3D12PipelineState> pipeline_;
     XWe::DX12::PipelineStateCache pso_cache_;
     DxrPipeline dxr_pipeline_;
+    XWe::Rendering::Upscaling::FSR3Loader fsr3_loader_;
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> constant_buffers_{};
