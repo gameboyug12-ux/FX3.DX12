@@ -9,6 +9,38 @@ option(FX3_BUILD_ENGINE_STATIC "Build static engine (.lib)" ON)
 option(FX3_BUILD_ENGINE_SHARED "Build dynamic engine (.dll)" ON)
 option(FX3_BUILD_RUNTIME "Build main.exe" ON)
 option(FX3_BUILD_EDITOR "Build the native Win32 FX3 editor" ON)
+option(FX3_ENABLE_FSR3 "Enable AMD FSR 3 runtime discovery" ON)
+set(FX3_FSR3_DLL_DIR "" CACHE PATH "Directory containing AMD FSR 3 x64 runtime DLLs")
+
+set(FX3_FSR3_RUNTIME_DLLS
+    ffx_fsr3_x64.dll
+    ffx_fsr3upscaler_x64.dll
+    ffx_opticalflow_x64.dll
+    ffx_frameinterpolation_x64.dll
+    ffx_backend_dx12_x64.dll)
+
+if(FX3_ENABLE_FSR3 AND FX3_FSR3_DLL_DIR)
+    foreach(dll IN LISTS FX3_FSR3_RUNTIME_DLLS)
+        if(NOT EXISTS "${FX3_FSR3_DLL_DIR}/${dll}")
+            message(FATAL_ERROR "Missing FSR3 runtime DLL: ${FX3_FSR3_DLL_DIR}/${dll}")
+        endif()
+    endforeach()
+endif()
+
+function(fx3_deploy_fsr3 target)
+    if(FX3_ENABLE_FSR3 AND FX3_FSR3_DLL_DIR)
+        set(destination "$<TARGET_FILE_DIR:${target}>/third_party/FSR")
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E make_directory "${destination}"
+            VERBATIM)
+        foreach(dll IN LISTS FX3_FSR3_RUNTIME_DLLS)
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                    "${FX3_FSR3_DLL_DIR}/${dll}" "${destination}/${dll}"
+                VERBATIM)
+        endforeach()
+    endif()
+endfunction()
 set(FX3_LINK_ENGINE "DYNAMIC" CACHE STRING "Engine linked by EXE targets: DYNAMIC or STATIC")
 set_property(CACHE FX3_LINK_ENGINE PROPERTY STRINGS DYNAMIC STATIC)
 string(TOUPPER "${FX3_LINK_ENGINE}" FX3_LINK_ENGINE)
@@ -90,7 +122,9 @@ set(XWE_PUBLIC_HEADERS
     include/XWe/DX/DX12/DX12RaytracingApi.hpp include/XWe/DX/DX12/DX12RaytracingDispatch.hpp include/XWe/DX/DX12/DX12RaytracingSceneData.hpp
     include/XWe/DX/DX12/DX12RendererApi.hpp include/XWe/DX/DX12/DX12RendererStateObject.hpp include/XWe/DX/DX12/DX12Shader.hpp
     include/XWe/DX/DX12/DX12ShaderBindingTable.hpp include/XWe/DX/DX12/DX12Texture.hpp
-    include/XWe/ShadowTracer/DX12/DX12ShadowTrace.hpp include/fx3/dx12_features.hpp include/fx3/dxr_pipeline.hpp
+    include/XWe/ShadowTracer/DX12/DX12ShadowTrace.hpp
+    Include/XWe/Rendering/Upscaling/FSR3Loader.hpp
+    include/fx3/dx12_features.hpp include/fx3/dxr_pipeline.hpp
     include/fx3/engine.hpp include/fx3/pso_cache.hpp include/fx3/psopt.hpp include/fx3/render_features.hpp)
 
 set(XWE_ENGINE_SOURCES
@@ -98,12 +132,13 @@ set(XWE_ENGINE_SOURCES
     src/dx12/DX12Ctx.cpp src/dx12/DX12PiplineStateObject.cpp src/dx12/DX12RendererStateObject.cpp
     src/dx12/DX12RendererApi.cpp src/dx12/DX12GBuffer.cpp src/dx12/DX12Texture.cpp src/dx12/DX12Materail.cpp
     src/dx12/DX12Shader.cpp src/dx12/DX12AccelerationStructure.cpp src/dx12/DX12ShaderBindingTable.cpp
-    src/dx12/DX12RaytracingApi.cpp src/dx12/DX12RaytracingDispatch.cpp ${XWE_PUBLIC_HEADERS})
+    src/dx12/DX12RaytracingApi.cpp src/dx12/DX12RaytracingDispatch.cpp
+    src/rendering/upscaling/FSR3Loader.cpp ${XWE_PUBLIC_HEADERS})
 
 if(FX3_BUILD_ENGINE_SHARED)
     add_library(xwe_engine_shared SHARED ${XWE_ENGINE_SOURCES})
     add_dependencies(xwe_engine_shared XWeShaders)
-    target_include_directories(xwe_engine_shared PUBLIC include)
+    target_include_directories(xwe_engine_shared PUBLIC Include include)
     target_compile_features(xwe_engine_shared PUBLIC cxx_std_20)
     target_compile_definitions(xwe_engine_shared PRIVATE XWE_BUILD_DLL UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX "XWE_SHADER_DIR=L\"${FX3_SHADER_DIR}\"" $<$<CONFIG:Debug>:XWE_DEBUG>)
     target_link_libraries(xwe_engine_shared PUBLIC d3d12 dxgi dxguid)
@@ -114,7 +149,7 @@ endif()
 if(FX3_BUILD_ENGINE_STATIC)
     add_library(xwe_engine_static STATIC ${XWE_ENGINE_SOURCES})
     add_dependencies(xwe_engine_static XWeShaders)
-    target_include_directories(xwe_engine_static PUBLIC include)
+    target_include_directories(xwe_engine_static PUBLIC Include include)
     target_compile_features(xwe_engine_static PUBLIC cxx_std_20)
     target_compile_definitions(xwe_engine_static PUBLIC XWE_STATIC UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX "XWE_SHADER_DIR=L\"${FX3_SHADER_DIR}\"" $<$<CONFIG:Debug>:XWE_DEBUG>)
     target_link_libraries(xwe_engine_static PUBLIC d3d12 dxgi dxguid)
@@ -137,6 +172,7 @@ if(FX3_BUILD_RUNTIME)
     target_link_libraries(FX3DX12 PRIVATE ${FX3_ENGINE_TARGET})
     add_dependencies(FX3DX12 XWeShaders)
     fx3_output_dirs(FX3DX12 "${FX3_OUT_DIR}")
+    fx3_deploy_fsr3(FX3DX12)
     if(FX3_LINK_ENGINE STREQUAL "DYNAMIC")
         add_custom_command(TARGET FX3DX12 POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:xwe_engine_shared>" "$<TARGET_FILE_DIR:FX3DX12>" VERBATIM)
     endif()
@@ -156,6 +192,7 @@ if(FX3_BUILD_EDITOR)
     target_compile_definitions(FX3Editor PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX "XWE_SHADER_DIR=L\"${FX3_SHADER_DIR}\"" $<$<CONFIG:Debug>:XWE_DEBUG>)
     target_link_libraries(FX3Editor PRIVATE ${FX3_ENGINE_TARGET} d3d12 dxgi dxguid ole32 shell32 comctl32 uuid)
     fx3_output_dirs(FX3Editor "${FX3_EDITORS_DIR}")
+    fx3_deploy_fsr3(FX3Editor)
     if(FX3_LINK_ENGINE STREQUAL "DYNAMIC")
         add_custom_command(TARGET FX3Editor POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:xwe_engine_shared>" "$<TARGET_FILE_DIR:FX3Editor>" VERBATIM)
     endif()
@@ -180,3 +217,5 @@ message(STATUS "FX3 output root: ${FX3_OUT_DIR}")
 message(STATUS "Engine variants: static=${FX3_BUILD_ENGINE_STATIC}, shared=${FX3_BUILD_ENGINE_SHARED}")
 message(STATUS "EXE engine linkage: ${FX3_LINK_ENGINE}")
 message(STATUS "DXC: ${DXC_EXECUTABLE}")
+message(STATUS "FSR3 runtime discovery: ${FX3_ENABLE_FSR3}")
+message(STATUS "FSR3 DLL directory: ${FX3_FSR3_DLL_DIR}")
