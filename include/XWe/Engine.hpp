@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include <memory>
+#include "XWe/Rendering/Upscaling/UpscalingSettings.hpp"
 
 namespace XWe {
 
@@ -11,6 +12,7 @@ struct EngineConfig {
     unsigned int window_width = 1280;
     unsigned int window_height = 720;
     bool enable_debug_layer = true;
+    Rendering::Upscaling::UpscalingConfig upscaling{};
 };
 
 class Engine final {
