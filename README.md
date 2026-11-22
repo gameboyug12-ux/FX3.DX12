@@ -44,3 +44,29 @@ Release outputs are placed under `build/bin/Release/`: `FX3Editor.exe`, `main.ex
 ## Known limitations
 
 Scene objects and transforms are persisted in `.fx3scene`, but the DXR viewport still renders the fixed validation triangle. Scene entries are not yet converted into GPU mesh instances; transform edits do not rebuild BLAS/TLAS. Mesh import, camera controls, dynamic rendering, materials, multi-bounce path tracing, accumulation, denoising and FSR remain future work. The editor/renderer has not been declared production-ready.
+
+
+---
+
+# FX3 Engine v0.4 — Renderer milestone
+
+This branch layers the v0.4 renderer onto `release/0.3.9`. It intentionally adds no scene system, ECS, editor, or gameplay layer.
+
+- Windows x64 / C++20 / Direct3D 12 renderer with Win32 window, hardware adapter and WARP fallback, swap chain, RTV/DSV, depth testing, command queue/list and fence synchronization.
+- Single static OBJ mesh loader with positions, UVs, normals, polygon triangulation, positive/negative indices, and initial clip-space fitting.
+- Custom FXTEX v1 binary texture format: little-endian width/height followed by tightly packed RGBA8.
+- Textured mesh pipeline, runtime HLSL compilation, sample OBJ/FXTEX generator and PPM-to-FXTEX converter.
+
+## Build and smoke test
+
+```powershell
+python tools/make_sample_assets.py
+cmake -S . -B build -A x64
+cmake --build build --config Debug
+```
+
+Run `build/Debug/FX3DX12.exe` from the repository root.
+
+The renderer currently supports one static mesh and one albedo texture. Camera controls, scene graph, ECS, material system, mipmaps, compressed textures, and resize-aware swap-chain recreation are outside v0.4 scope.
+
+**Validation:** a Windows/MSVC/D3D12 build has not been run in this environment; verify on Windows 10/11 with the D3D12 debug layer before merging.
