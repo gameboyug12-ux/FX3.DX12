@@ -1,12 +1,15 @@
 #pragma once
 #include "DX12AccelerationStructure.hpp"
 #include "DX12ShaderBindingTable.hpp"
+#include "DX12RaytracingSceneData.hpp"
 #include <wrl/client.h>
 #include <string>
 
 namespace XWe::DX::DX12 {
 class DX12RaytracingApi final {
 public:
+    static constexpr UINT SceneSrvDescriptorCount = kRTSceneSrvDescriptorCount;
+    static constexpr UINT OutputUavDescriptorCount = kRTOutputUavDescriptorCount;
     HRESULT Initialize(ID3D12Device* device) noexcept;
     HRESULT CreatePipeline(const std::wstring& dxil_library_path) noexcept;
     bool IsSupported() const noexcept { return device5_ != nullptr; }

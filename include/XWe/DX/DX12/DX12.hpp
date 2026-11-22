@@ -11,6 +11,7 @@
 #include "DX12Shader.hpp"
 #include "DX12AccelerationStructure.hpp"
 #include "DX12ShaderBindingTable.hpp"
+#include "DX12RaytracingSceneData.hpp"
 #include "DX12RaytracingApi.hpp"
 #include "DX12RaytracingDispatch.hpp"
 #include "XWe/ShadowTracer/DX12/DX12ShadowTrace.hpp"
