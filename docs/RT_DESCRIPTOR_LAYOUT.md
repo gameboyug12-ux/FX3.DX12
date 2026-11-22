@@ -1,44 +1,63 @@
-# Hybrid DXR descriptor and buffer contract
+# DX12 hybrid ray-tracing descriptor and buffer contract
 
-`DX12RaytracingApi::CreatePipeline` creates two root descriptor tables. The GPU handles
-passed to `DX12RaytracingDispatch::Dispatch` point to the first entry of each table.
-All descriptors in each table must be contiguous in the same shader-visible
-CBV/SRV/UAV heap.
+`DX12RaytracingApi::CreatePipeline(path, srvCount)` creates a contiguous SRV table
+at root parameter 0 and a one-entry UAV table at root parameter 1. Dispatch handles
+point to the first descriptor in each table. All entries must be contiguous in the
+same shader-visible CBV/SRV/UAV heap.
 
-## SRV table — five descriptors
+## Standalone path tracer — five SRVs
 
-| Register | Resource | Required layout |
+Use `CreatePipeline(path, 5)` for `hybrid_pathtrace.dxil`:
+
+| Register | Resource | Layout |
 |---|---|---|
 | t0 | TLAS | Raytracing acceleration-structure SRV |
-| t1 | Vertex data | StructuredBuffer of `RTVertex`, 48-byte stride |
-| t2 | Indices | StructuredBuffer of 32-bit unsigned indices |
-| t3 | Geometry table | StructuredBuffer of `RTGeometryInfo`, 16-byte stride |
-| t4 | Materials | StructuredBuffer of `RTMaterial`, 48-byte stride |
+| t1 | Vertices | `StructuredBuffer<RTVertex>`, 48-byte stride |
+| t2 | Indices | `StructuredBuffer<uint>`, 32-bit triangle-list indices |
+| t3 | Geometry table | `StructuredBuffer<RTGeometryInfo>`, 16-byte stride |
+| t4 | Materials | `StructuredBuffer<RTMaterial>`, 48-byte stride |
 
-## UAV table — one descriptor
+## Raster-primary deferred hybrid — twelve SRVs
 
-| Register | Resource | Required format |
+Use `CreatePipeline(path, 12)` for `hybrid_deferred.dxil`:
+
+| Register | Resource | Layout |
+|---|---|---|
+| t0 | TLAS | Raytracing acceleration-structure SRV |
+| t1 | G-buffer Albedo | `DX12GBufferSlot::Albedo`, RGBA8 |
+| t2 | G-buffer Normal | `DX12GBufferSlot::Normal`, RGBA16F |
+| t3 | G-buffer Material | `DX12GBufferSlot::Material`, RGBA8; R=metallic, G=AO, B=roughness |
+| t4 | G-buffer Velocity | `DX12GBufferSlot::Velocity`, RG16F (reserved) |
+| t5 | G-buffer Emissive | `DX12GBufferSlot::Emissive`, RGBA16F |
+| t6 | Depth | `DX12GBuffer::Depth()` SRV, R32_FLOAT |
+| t7 | Materials | `StructuredBuffer<RTMaterial>`, 48-byte stride |
+| t8 | Vertices | `StructuredBuffer<RTVertex>`, 48-byte stride |
+| t9 | Indices | `StructuredBuffer<uint>`, 32-bit triangle-list indices |
+| t10 | Geometry table | `StructuredBuffer<RTGeometryInfo>`, 16-byte stride |
+| t11 | Frame data | One `StructuredBuffer<RTFrameData>`, 128-byte stride |
+
+## UAV table
+
+| Register | Resource | Format |
 |---|---|---|
 | u0 | Output | 2D UAV texture, preferably R16G16B16A16_FLOAT or R32G32B32A32_FLOAT |
 
-## Instance and geometry indexing
+## Scene and frame layout
 
-Set `D3D12_RAYTRACING_INSTANCE_DESC::InstanceID` to the scene instance slot.
-The shader reads `GeometryTable[InstanceID * 16 + GeometryIndex()]`; reserve 16
-geometry metadata entries per instance. Each record stores a base vertex offset,
-first index and material index. The index buffer uses 32-bit triangle-list indices.
-Vertex positions are object-space and are transformed by `ObjectToWorld3x4()` when
-the closest-hit shader reconstructs the geometric world normal.
+Set `D3D12_RAYTRACING_INSTANCE_DESC::InstanceID` to the scene instance slot. The
+shader reads `GeometryTable[InstanceID * 16 + GeometryIndex()]`; reserve 16 metadata
+slots per instance. Each geometry record stores base vertex offset, first index and
+material index. Positions are object-space and transformed by `ObjectToWorld3x4()`.
 
-The matching C++ structures and compile-time size assertions are in
-`include/XWe/DX/DX12/DX12RaytracingSceneData.hpp`.
+`RTFrameData` contains a row-major inverse view-projection matrix, camera position,
+exposure, directional-light vector/intensity/color, GI intensity and background color.
+The deferred shader reconstructs world position from G-buffer depth. The CPU structures
+in `DX12RaytracingSceneData.hpp` have compile-time size assertions.
 
-## Dispatch and lifetime
+## Resource lifetime
 
-- The SRV and UAV handles must belong to the shader-visible heap passed to Dispatch.
-- The SBT identifiers must be obtained from the hybrid pipeline state object's
-  `ID3D12StateObjectProperties`.
-- Build BLAS/TLAS before dispatch and keep all geometry, material, descriptor and
-  output resources alive until the queue fence for that dispatch has completed.
-- The shader performs four spatial samples and up to three path bounces. It does not
-  perform temporal accumulation or denoising.
+Build BLAS/TLAS and transition resources before dispatch. Keep geometry, material,
+descriptor, frame-data and output resources alive until the command-queue fence for
+the dispatch has completed. The path tracer uses four spatial samples and up to three
+bounces. The deferred pass traces shadow, reflection and diffuse-GI rays per rasterized
+pixel. Neither pass performs temporal accumulation or denoising.

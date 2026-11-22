@@ -20,11 +20,12 @@ HRESULT DX12RaytracingApi::Initialize(ID3D12Device* device) noexcept {
     return device->QueryInterface(IID_PPV_ARGS(&device5_));
 }
 
-HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
+HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path, UINT scene_srv_descriptor_count) noexcept {
     if (!device5_) return E_NOINTERFACE;
     state_object_.Reset();
     properties_.Reset();
     global_root_signature_.Reset();
+    if (scene_srv_descriptor_count == 0 || scene_srv_descriptor_count > 32) return E_INVALIDARG;
 
     try {
         std::ifstream file(std::filesystem::path(path), std::ios::binary | std::ios::ate);
@@ -36,11 +37,11 @@ HRESULT DX12RaytracingApi::CreatePipeline(const std::wstring& path) noexcept {
         file.read(reinterpret_cast<char*>(code.data()), length);
         if (!file) return E_FAIL;
 
-        // Contiguous SRVs: t0=TLAS, t1=RTVertex[], t2=uint32 indices[],
-        // t3=RTGeometryInfo[], t4=RTMaterial[]. UAV u0 is the output texture.
+        // Five SRVs are used by hybrid_pathtrace; twelve by hybrid_deferred.
+        // The UAV table begins at u0.
         D3D12_DESCRIPTOR_RANGE ranges[2]{};
         ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        ranges[0].NumDescriptors = kRTSceneSrvDescriptorCount;
+        ranges[0].NumDescriptors = scene_srv_descriptor_count;
         ranges[0].BaseShaderRegister = 0;
         ranges[0].RegisterSpace = 0;
         ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;

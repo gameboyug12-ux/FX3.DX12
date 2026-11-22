@@ -72,6 +72,14 @@ add_custom_command(OUTPUT "${XWE_HYBRID_DXR_SHADER}"
     COMMAND "${DXC_EXECUTABLE}" -nologo -T lib_6_3 -HV 2021 -Ges -Fo "${XWE_HYBRID_DXR_SHADER}" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/hybrid_pathtrace.hlsl"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/hybrid_pathtrace.hlsl" COMMENT "Compiling hybrid DXR path tracer" VERBATIM)
 list(APPEND XWE_SHADER_BINARIES "${XWE_HYBRID_DXR_SHADER}")
+
+set(XWE_HYBRID_DEFERRED_SHADER "${FX3_SHADER_DIR}/hybrid_deferred.dxil")
+add_custom_command(OUTPUT "${XWE_HYBRID_DEFERRED_SHADER}"
+    COMMAND "${DXC_EXECUTABLE}" -nologo -T lib_6_3 -HV 2021 -Ges
+            -Fo "${XWE_HYBRID_DEFERRED_SHADER}" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/hybrid_deferred.hlsl"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/hybrid_deferred.hlsl"
+    COMMENT "Compiling raster-primary hybrid DXR library" VERBATIM)
+list(APPEND XWE_SHADER_BINARIES "${XWE_HYBRID_DEFERRED_SHADER}")
 add_custom_target(XWeShaders DEPENDS ${XWE_SHADER_BINARIES})
 
 set(XWE_PUBLIC_HEADERS
