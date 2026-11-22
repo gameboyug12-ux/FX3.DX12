@@ -99,7 +99,7 @@ int RunRenderer(HINSTANCE instance, int show, const Mesh& mesh, const Texture& t
     D3D12_DESCRIPTOR_RANGE range{}; range.RangeType=D3D12_DESCRIPTOR_RANGE_TYPE_SRV; range.NumDescriptors=1; range.BaseShaderRegister=0; range.OffsetInDescriptorsFromTableStart=0;
     D3D12_ROOT_PARAMETER param{}; param.ParameterType=D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE; param.DescriptorTable.NumDescriptorRanges=1; param.DescriptorTable.pDescriptorRanges=&range; param.ShaderVisibility=D3D12_SHADER_VISIBILITY_PIXEL;
     D3D12_STATIC_SAMPLER_DESC sampler{}; sampler.Filter=D3D12_FILTER_MIN_MAG_MIP_LINEAR; sampler.AddressU=sampler.AddressV=sampler.AddressW=D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    sampler.ShaderRegister=0; sampler.MaxLOD=D3D12_FLOAT32_MAX; sampler.ShaderVisibility=D3D12_SHADER_VISIBILITY_PIXEL;
+    sampler.ShaderRegister=0; sampler.MaxAnisotropy=1; sampler.ComparisonFunc=D3D12_COMPARISON_FUNC_ALWAYS; sampler.MinLOD=0.0f; sampler.MaxLOD=D3D12_FLOAT32_MAX; sampler.ShaderVisibility=D3D12_SHADER_VISIBILITY_PIXEL;
     D3D12_ROOT_SIGNATURE_DESC rootDesc{}; rootDesc.NumParameters=1; rootDesc.pParameters=&param; rootDesc.NumStaticSamplers=1; rootDesc.pStaticSamplers=&sampler;
     rootDesc.Flags=D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
     ComPtr<ID3DBlob> rootBlob,rootError; Check(D3D12SerializeRootSignature(&rootDesc,D3D_ROOT_SIGNATURE_VERSION_1,&rootBlob,&rootError),"Serialize root signature failed");
@@ -121,7 +121,7 @@ float4 PSMain(P i):SV_TARGET { float l=0.25+0.75*saturate(dot(normalize(i.n),nor
         {"NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}};
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pd{}; pd.pRootSignature=root.Get(); pd.VS={vs->GetBufferPointer(),vs->GetBufferSize()}; pd.PS={ps->GetBufferPointer(),ps->GetBufferSize()};
     pd.BlendState.AlphaToCoverageEnable=FALSE; pd.BlendState.IndependentBlendEnable=FALSE;
-    auto& rt=pd.BlendState.RenderTarget[0]; rt.RenderTargetWriteMask=D3D12_COLOR_WRITE_ENABLE_ALL;
+    auto& rt=pd.BlendState.RenderTarget[0]; rt.BlendEnable=FALSE; rt.LogicOpEnable=FALSE; rt.SrcBlend=D3D12_BLEND_ONE; rt.DestBlend=D3D12_BLEND_ZERO; rt.BlendOp=D3D12_BLEND_OP_ADD; rt.SrcBlendAlpha=D3D12_BLEND_ONE; rt.DestBlendAlpha=D3D12_BLEND_ZERO; rt.BlendOpAlpha=D3D12_BLEND_OP_ADD; rt.LogicOp=D3D12_LOGIC_OP_NOOP; rt.RenderTargetWriteMask=D3D12_COLOR_WRITE_ENABLE_ALL;
     pd.SampleMask=UINT_MAX; pd.RasterizerState.FillMode=D3D12_FILL_MODE_SOLID; pd.RasterizerState.CullMode=D3D12_CULL_MODE_NONE; pd.RasterizerState.DepthClipEnable=TRUE;
     pd.DepthStencilState.DepthEnable=TRUE; pd.DepthStencilState.DepthWriteMask=D3D12_DEPTH_WRITE_MASK_ALL; pd.DepthStencilState.DepthFunc=D3D12_COMPARISON_FUNC_LESS;
     pd.DepthStencilState.StencilEnable=FALSE; pd.InputLayout={input,3}; pd.PrimitiveTopologyType=D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -147,7 +147,6 @@ float4 PSMain(P i):SV_TARGET { float l=0.25+0.75*saturate(dot(normalize(i.n),nor
     for(UINT y=0;y<texture.height;++y) std::memcpy(dst+static_cast<size_t>(y)*footprint.Footprint.RowPitch,texture.rgba.data()+static_cast<size_t>(y)*texture.width*4,static_cast<size_t>(texture.width)*4);
     texUpload->Unmap(0,nullptr);
 
-    list->CopyTextureRegion(nullptr,0,0,0,nullptr,nullptr);
     D3D12_TEXTURE_COPY_LOCATION src{}; src.pResource=texUpload.Get(); src.Type=D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT; src.PlacedFootprint=footprint;
     D3D12_TEXTURE_COPY_LOCATION dstLoc{}; dstLoc.pResource=gpuTexture.Get(); dstLoc.Type=D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; dstLoc.SubresourceIndex=0;
     list->CopyTextureRegion(&dstLoc,0,0,0,&src,nullptr);
@@ -172,7 +171,8 @@ float4 PSMain(P i):SV_TARGET { float l=0.25+0.75*saturate(dot(normalize(i.n),nor
         barrier.Transition.StateBefore=D3D12_RESOURCE_STATE_PRESENT; barrier.Transition.StateAfter=D3D12_RESOURCE_STATE_RENDER_TARGET; barrier.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         list->ResourceBarrier(1,&barrier);
         auto rhnd=rtvHeap->GetCPUDescriptorHandleForHeapStart(); rhnd.ptr+=static_cast<SIZE_T>(frame)*rtvStep;
-        list->OMSetRenderTargets(1,&rhnd,FALSE,&dsvHeap->GetCPUDescriptorHandleForHeapStart());
+        const auto dsvHandle=dsvHeap->GetCPUDescriptorHandleForHeapStart();
+        list->OMSetRenderTargets(1,&rhnd,FALSE,&dsvHandle);
         const float clear[]={0.035f,0.045f,0.065f,1}; list->ClearRenderTargetView(rhnd,clear,0,nullptr);
         list->ClearDepthStencilView(dsvHeap->GetCPUDescriptorHandleForHeapStart(),D3D12_CLEAR_FLAG_DEPTH,1.0f,0,0,nullptr);
         list->RSSetViewports(1,&viewport); list->RSSetScissorRects(1,&scissor);
