@@ -1,5 +1,6 @@
 #include "fx3/Assets.hpp"
 #include <cstdio>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -71,6 +72,18 @@ bool LoadOBJ(const std::filesystem::path& path, Mesh& out, char* error, std::siz
     }
     if (out.vertices.empty() || out.indices.empty()) {
         if (cap) std::snprintf(error,cap,"OBJ contains no triangulatable faces"); return false;
+    }
+    // Center and fit the model into the initial clip-space renderer (no camera system in v0.4).
+    float lo[3]={out.vertices[0].position[0],out.vertices[0].position[1],out.vertices[0].position[2]};
+    float hi[3]={lo[0],lo[1],lo[2]};
+    for (const auto& v : out.vertices) for (int a=0;a<3;++a) {
+        lo[a]=std::min(lo[a],v.position[a]); hi[a]=std::max(hi[a],v.position[a]);
+    }
+    const float extent=std::max({hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2],0.0001f});
+    for (auto& v : out.vertices) {
+        v.position[0]=(v.position[0]-(lo[0]+hi[0])*0.5f)*(1.6f/extent);
+        v.position[1]=(v.position[1]-(lo[1]+hi[1])*0.5f)*(1.6f/extent);
+        v.position[2]=0.1f+((v.position[2]-lo[2])/extent)*0.8f;
     }
     // Supply a stable default normal when the OBJ omits vn data.
     for (auto& v : out.vertices) if (v.normal[0]==0 && v.normal[1]==0 && v.normal[2]==0) v.normal[1]=1.0f;
