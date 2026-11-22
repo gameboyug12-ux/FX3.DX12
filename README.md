@@ -13,7 +13,7 @@ FX3 is a Windows x64, C++20, Direct3D 12 renderer foundation. **v0.4 intentional
 
 ## Asset contract
 
-Put these files in the runtime `assets/` directory:
+Generate a runnable sample cube and checker texture with `python tools/make_sample_assets.py`, or put your own files in the runtime `assets/` directory:
 
 - `model.obj` — one OBJ mesh. UV coordinates should be present for textured output.
 - `albedo.fxtex` — texture in FXTEX v1 format.
