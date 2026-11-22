@@ -15,7 +15,7 @@ enum class ResolutionPreset : std::uint8_t {
 };
 
 enum class UpscalingMode : std::uint8_t {
-    Native, Automatic, Render720p, Render900p, Render1080p, Render1440p
+    Automatic, Native, Render720p, Render900p, Render1080p, Render1440p
 };
 
 struct UpscalingConfig final {
