@@ -38,7 +38,7 @@ Requirements: Windows 10/11 x64, Visual Studio 2022 (MSVC), Windows SDK with D3D
 ```powershell
 cmake -S . -B build -A x64
 cmake --build build --config Debug
-````
+```
 
 Run `build/Debug/FX3DX12.exe` with `assets/model.obj` and `assets/albedo.fxtex` available relative to the working directory.
 
