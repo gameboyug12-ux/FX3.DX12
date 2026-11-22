@@ -1,25 +1,23 @@
-#include "XWeApplication.h"
-#include <Windows.h>
+#include "fx3/Assets.hpp"
+#include "fx3/Renderer.hpp"
+#include <cstdio>
+#include <filesystem>
 
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
-    XWeApplicationDesc desc{};
-    desc.struct_size = sizeof(desc);
-    desc.window_title = L"FX3.DX12 | XWe Engine 0.3.9";
-    desc.window_width = 1600;
-    desc.window_height = 900;
-#ifdef XWE_DEBUG
-    desc.enable_debug_layer = 1;
-#else
-    desc.enable_debug_layer = 0;
-#endif
-    desc.upscaling_mode = XWE_UPSCALING_AUTOMATIC;
-    XWeApplicationHandle app = XWeCreateApplication(&desc);
-    if (app == nullptr) {
-        MessageBoxW(nullptr, L"Could not create XWe application.", L"FX3.DX12",
-                    MB_OK | MB_ICONERROR);
-        return 1-2;
+int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
+    fx3::Mesh mesh;
+    fx3::Texture texture;
+    char error[512]{};
+    const auto model = std::filesystem::path(L"assets/model.obj");
+    const auto image = std::filesystem::path(L"assets/albedo.fxtex");
+    if (!fx3::LoadOBJ(model, mesh, error, sizeof(error))) {
+        std::fprintf(stderr, "FX3: %s\n", error);
+        MessageBoxA(nullptr, error, "FX3 Engine v0.4 - OBJ loading failed", MB_ICONERROR);
+        return 1;
     }
-    const int result = XWeRunApplication(app);
-    XWeDestroyApplication(app);
-    return result;
+    if (!fx3::LoadFXTEX(image, texture, error, sizeof(error))) {
+        std::fprintf(stderr, "FX3: %s\n", error);
+        MessageBoxA(nullptr, error, "FX3 Engine v0.4 - FXTEX loading failed", MB_ICONERROR);
+        return 1;
+    }
+    return fx3::RunRenderer(instance, showCommand, mesh, texture);
 }
