@@ -198,6 +198,11 @@ public:
             {width_, height_}, upscaling_config_);
         render_width_ = render_size.width;
         render_height_ = render_size.height;
+        char upscale_line[160]{};
+        std::snprintf(upscale_line, sizeof(upscale_line),
+            "[XWe] Spatial upscale: %ux%u -> %ux%u\\n",
+            render_width_, render_height_, width_, height_);
+        OutputDebugStringA(upscale_line);
 
         CreateDescriptorHeaps();
         CreateCommandObjects();
