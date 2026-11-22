@@ -4,6 +4,7 @@
 #include <fstream>
 #include <limits>
 #include <vector>
+#include <utility>
 
 namespace fx3 {
 namespace {
