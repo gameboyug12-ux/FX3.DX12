@@ -81,7 +81,7 @@ int RunRenderer(HINSTANCE instance, int show, const Mesh& mesh, const Texture& t
     D3D12_DESCRIPTOR_HEAP_DESC dh{}; dh.NumDescriptors=1; dh.Type=D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
     ComPtr<ID3D12DescriptorHeap> dsvHeap; Check(device->CreateDescriptorHeap(&dh,IID_PPV_ARGS(&dsvHeap)),"Create DSV heap failed");
     D3D12_RESOURCE_DESC depthDesc{}; depthDesc.Dimension=D3D12_RESOURCE_DIMENSION_TEXTURE2D; depthDesc.Width=1280; depthDesc.Height=720;
-    depthDesc.DepthOrArraySize=1; depthDesc.MipLevels=1; depthDesc.Format=DXGI_FORMAT_D32_FLOAT; depthDesc.SampleDesc.Count=1;
+    depthDesc.DepthOrArraySize=1; depthDesc.MipLevels=1; depthDesc.Format=DXGI_FORMAT_D32_FLOAT; depthDesc.SampleDesc.Count=1; depthDesc.Flags=D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     D3D12_CLEAR_VALUE depthClear{}; depthClear.Format=DXGI_FORMAT_D32_FLOAT; depthClear.DepthStencil.Depth=1.0f;
     D3D12_HEAP_PROPERTIES defaultHeap{}; defaultHeap.Type=D3D12_HEAP_TYPE_DEFAULT;
     ComPtr<ID3D12Resource> depth;
