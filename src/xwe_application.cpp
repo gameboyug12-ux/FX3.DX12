@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <new>
+#include <cstddef>
 
 namespace {
 struct XWeApplicationInstance {
@@ -17,11 +18,17 @@ XWeCreateApplication(const XWeApplicationDesc* desc) {
     try {
         XWe::EngineConfig config{};
         if (desc != nullptr) {
-            if (desc->struct_size < sizeof(XWeApplicationDesc)) return nullptr;
+            if (desc->struct_size < offsetof(XWeApplicationDesc, upscaling_mode)) return nullptr;
             if (desc->window_title != nullptr) config.window_title = desc->window_title;
             if (desc->window_width != 0) config.window_width = desc->window_width;
             if (desc->window_height != 0) config.window_height = desc->window_height;
             config.enable_debug_layer = desc->enable_debug_layer != 0;
+            if (desc->struct_size >= sizeof(XWeApplicationDesc) &&
+                desc->upscaling_mode <= XWE_UPSCALING_RENDER_1440P) {
+                config.upscaling.mode =
+                    static_cast<XWe::Rendering::Upscaling::UpscalingMode>(
+                        desc->upscaling_mode);
+            }
         }
         return new (std::nothrow) XWeApplicationInstance(config);
     } catch (...) {
@@ -46,5 +53,5 @@ XWeDestroyApplication(XWeApplicationHandle application) {
 }
 
 extern "C" XWE_API const wchar_t* XWeGetVersion(void) {
-    return L"0.3.8";
+    return L"0.3.9";
 }
