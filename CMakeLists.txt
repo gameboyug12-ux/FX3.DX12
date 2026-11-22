@@ -77,9 +77,11 @@ function(fx3_output_dirs target dir)
 endfunction()
 
 set(XWE_SHADER_BINARIES)
-foreach(shader IN ITEMS shaders/mesh_vs.hlsl shaders/mesh_ps.hlsl)
+foreach(shader IN ITEMS
+    shaders/mesh_vs.hlsl shaders/mesh_ps.hlsl
+    shaders/upscale_vs.hlsl shaders/upscale_ps.hlsl)
     get_filename_component(shader_name "${shader}" NAME)
-    if(shader_name STREQUAL "mesh_vs.hlsl")
+    if(shader_name MATCHES "_vs\\.hlsl$")
         set(shader_profile vs_6_0)
         set(shader_entry VSMain)
     else()
@@ -123,7 +125,8 @@ set(XWE_PUBLIC_HEADERS
     include/XWe/DX/DX12/DX12RendererApi.hpp include/XWe/DX/DX12/DX12RendererStateObject.hpp include/XWe/DX/DX12/DX12Shader.hpp
     include/XWe/DX/DX12/DX12ShaderBindingTable.hpp include/XWe/DX/DX12/DX12Texture.hpp
     include/XWe/ShadowTracer/DX12/DX12ShadowTrace.hpp
-    Include/XWe/Rendering/Upscaling/FSR3Loader.hpp
+    include/XWe/Rendering/Upscaling/FSR3Loader.hpp
+    include/XWe/Rendering/Upscaling/UpscalingSettings.hpp
     include/fx3/dx12_features.hpp include/fx3/dxr_pipeline.hpp
     include/fx3/engine.hpp include/fx3/pso_cache.hpp include/fx3/psopt.hpp include/fx3/render_features.hpp)
 
@@ -138,7 +141,7 @@ set(XWE_ENGINE_SOURCES
 if(FX3_BUILD_ENGINE_SHARED)
     add_library(xwe_engine_shared SHARED ${XWE_ENGINE_SOURCES})
     add_dependencies(xwe_engine_shared XWeShaders)
-    target_include_directories(xwe_engine_shared PUBLIC Include include)
+    target_include_directories(xwe_engine_shared PUBLIC include)
     target_compile_features(xwe_engine_shared PUBLIC cxx_std_20)
     target_compile_definitions(xwe_engine_shared PRIVATE XWE_BUILD_DLL UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX "XWE_SHADER_DIR=L\"${FX3_SHADER_DIR}\"" $<$<CONFIG:Debug>:XWE_DEBUG> $<$<BOOL:${FX3_ENABLE_FSR3}>:FX3_ENABLE_FSR3=1>)
     target_link_libraries(xwe_engine_shared PUBLIC d3d12 dxgi dxguid)
@@ -149,7 +152,7 @@ endif()
 if(FX3_BUILD_ENGINE_STATIC)
     add_library(xwe_engine_static STATIC ${XWE_ENGINE_SOURCES})
     add_dependencies(xwe_engine_static XWeShaders)
-    target_include_directories(xwe_engine_static PUBLIC Include include)
+    target_include_directories(xwe_engine_static PUBLIC include)
     target_compile_features(xwe_engine_static PUBLIC cxx_std_20)
     target_compile_definitions(xwe_engine_static PUBLIC XWE_STATIC UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX "XWE_SHADER_DIR=L\"${FX3_SHADER_DIR}\"" $<$<CONFIG:Debug>:XWE_DEBUG> $<$<BOOL:${FX3_ENABLE_FSR3}>:FX3_ENABLE_FSR3=1>)
     target_link_libraries(xwe_engine_static PUBLIC d3d12 dxgi dxguid)
