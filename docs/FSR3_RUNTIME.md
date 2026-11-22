@@ -39,8 +39,11 @@ Before enabling dispatch, match the DLL build to its AMD SDK headers and wire:
 
 Configure CMake with:
 
-    cmake -S . -B build-fx3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -DCMAKE_CXX_FLAGS="-fuse-ld=lld" -DDXC_EXECUTABLE="C:/XWe0.2/cmp-utils/dx/dxc.exe" -DFX3_FSR3_DLL_DIR="C:/XWe0.2/third_party/FSR" -DFX3_ENABLE_FSR3=ON
+    cmake -S . -B build-fx3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -DCMAKE_CXX_FLAGS="-fuse-ld=lld" -DDXC_EXECUTABLE="C:/XWe0.2/cmp-utils/dx/dxc.exe" -DFX3_FSR3_DLL_DIR="C:/XWe0.2/third-party/FSR" -DFX3_ENABLE_FSR3=ON
 
+Only set FX3_FSR3_DLL_DIR when that directory actually contains all five DLLs
+listed above. If the directory contains only headers or .lib files, omit that
+CMake option; the spatial upscaler still builds and runs without the FSR runtime.
 When FX3_FSR3_DLL_DIR is set, CMake copies the five runtime DLLs beside the
 executable under third_party/FSR. The engine looks for that directory relative to
 the executable. Keep AMD's original DLL files and licensing notices intact.
