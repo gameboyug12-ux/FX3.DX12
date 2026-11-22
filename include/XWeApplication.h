@@ -18,12 +18,23 @@ extern "C" {
 
 typedef void* XWeApplicationHandle;
 
+typedef enum XWeUpscalingMode {
+    XWE_UPSCALING_AUTOMATIC = 0,
+    XWE_UPSCALING_NATIVE = 1,
+    XWE_UPSCALING_RENDER_720P = 2,
+    XWE_UPSCALING_RENDER_900P = 3,
+    XWE_UPSCALING_RENDER_1080P = 4,
+    XWE_UPSCALING_RENDER_1440P = 5
+} XWeUpscalingMode;
+
 typedef struct XWeApplicationDesc {
     uint32_t struct_size;
     const wchar_t* window_title;
     uint32_t window_width;
     uint32_t window_height;
     uint32_t enable_debug_layer;
+    /* Optional fixed render resolution mode; zero selects automatic. */
+    uint32_t upscaling_mode;
 } XWeApplicationDesc;
 
 /* Creates an engine application instance. Returns NULL on failure. */
