@@ -15,7 +15,7 @@ bool LoadFXTEX(const std::filesystem::path& path, Texture& out, char* error, std
     constexpr char expected[8]={'F','X','T','E','X','0','0','1'};
     const std::uint64_t bytes=static_cast<std::uint64_t>(w)*h*4;
     if (!f || !std::equal(std::begin(magic),std::end(magic),std::begin(expected)) ||
-        w==0 || h==0 || bytes>512ull*1024ull*1024ull) {
+        w==0 || h==0 || w>16384 || h>16384 || bytes>512ull*1024ull*1024ull) {
         if(cap) std::snprintf(error,cap,"Invalid FXTEX v1 header or dimensions"); return false;
     }
     out.width=w; out.height=h; out.rgba.resize(static_cast<std::size_t>(bytes));
