@@ -88,7 +88,9 @@ constexpr UINT AlignConstantBufferSize(UINT size) {
 
 class D3D12Renderer final {
 public:
-    void Initialize(HWND window, UINT width, UINT height, bool enable_debug) {
+    void Initialize(HWND window, UINT width, UINT height, bool enable_debug,
+                    XWe::Rendering::Upscaling::UpscalingConfig upscaling_config) {
+        upscaling_config_ = upscaling_config;
 #ifdef FX3_ENABLE_FSR3
         const auto fsr3_directory =
             GetExecutableDirectory() / L"third_party" / L"FSR";
@@ -479,6 +481,9 @@ private:
         sampler.ShaderRegister = 0;
         sampler.RegisterSpace = 0;
         sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        sampler.MaxAnisotropy = 1;
+        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+        sampler.MinLOD = 0.0f;
         sampler.MaxLOD = D3D12_FLOAT32_MAX;
 
         D3D12_ROOT_SIGNATURE_DESC root_desc{};
@@ -513,7 +518,15 @@ private:
         pso.SampleMask = UINT_MAX;
         pso.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        pso.RasterizerState.FrontCounterClockwise = FALSE;
+        pso.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+        pso.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        pso.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
         pso.RasterizerState.DepthClipEnable = TRUE;
+        pso.RasterizerState.MultisampleEnable = FALSE;
+        pso.RasterizerState.AntialiasedLineEnable = FALSE;
+        pso.RasterizerState.ForcedSampleCount = 0;
+        pso.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
         pso.DepthStencilState.DepthEnable = FALSE;
         pso.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
         pso.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
@@ -834,7 +847,8 @@ public:
             }
 
             renderer_.Initialize(window_, config_.window_width,
-                                 config_.window_height, config_.enable_debug_layer);
+                                 config_.window_height, config_.enable_debug_layer,
+                                 config_.upscaling);
             ShowWindow(window_, show_command);
             UpdateWindow(window_);
 
