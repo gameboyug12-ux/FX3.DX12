@@ -12,6 +12,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
 #else
     desc.enable_debug_layer = 0;
 #endif
+    desc.upscaling_mode = XWE_UPSCALING_AUTOMATIC;
     XWeApplicationHandle app = XWeCreateApplication(&desc);
     if (app == nullptr) {
         MessageBoxW(nullptr, L"Could not create XWe application.", L"FX3.DX12",
