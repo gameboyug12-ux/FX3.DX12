@@ -22,6 +22,18 @@ swap-chain. This is a functional spatial upscaler/fallback, not AMD FSR 3.
 FSR3 DLL loading remains separate; AMD temporal upscaling and frame generation are
 not enabled until the exact SDK headers and API structures are integrated.
 
+The C API exposes the following XWeApplicationDesc values:
+- XWE_UPSCALING_AUTOMATIC (default);
+- XWE_UPSCALING_NATIVE;
+- XWE_UPSCALING_RENDER_720P;
+- XWE_UPSCALING_RENDER_900P;
+- XWE_UPSCALING_RENDER_1080P;
+- XWE_UPSCALING_RENDER_1440P.
+
+For example, set desc.upscaling_mode to XWE_UPSCALING_RENDER_900P before
+calling XWeCreateApplication to force a 1600x900 internal render target when
+the output is larger than 1600x900.
+
 The public configuration is in:
 - include/XWe/Rendering/Upscaling/UpscalingSettings.hpp
 - include/XWe/Rendering/Upscaling/FSR3Loader.hpp
