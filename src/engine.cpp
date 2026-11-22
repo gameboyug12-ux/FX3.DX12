@@ -3,6 +3,7 @@
 #include "XWe/DX12/PipelineStateCache.hpp"
 #include "XWe/DX12/DxrPipeline.hpp"
 #include "XWe/Rendering/Upscaling/FSR3Loader.hpp"
+#include "XWe/Rendering/Upscaling/UpscalingSettings.hpp"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -189,16 +190,23 @@ public:
         ThrowIfFailed(factory_->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER),
                       "MakeWindowAssociation");
 
+        width_ = width;
+        height_ = height;
+        const auto render_size = XWe::Rendering::Upscaling::SelectRenderResolution(
+            {width_, height_}, upscaling_config_);
+        render_width_ = render_size.width;
+        render_height_ = render_size.height;
+
         CreateDescriptorHeaps();
         CreateCommandObjects();
         CreateRenderTargets();
-        CreateDepthBuffer(width, height);
+        CreateUpscaleResources();
+        CreateDepthBuffer(render_width_, render_height_);
         CreateGeometry();
         CreateConstantBuffers();
         CreatePipeline();
+        CreateUpscalePipeline();
 
-        width_ = width;
-        height_ = height;
         frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
     }
 
@@ -223,45 +231,77 @@ public:
         ThrowIfFailed(command_list_->Reset(allocator.Get(), pipeline_.Get()),
                       "Reset command list");
 
-        D3D12_RESOURCE_BARRIER to_render{};
-        to_render.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        to_render.Transition.pResource = render_targets_[frame_index_].Get();
-        to_render.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        to_render.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-        to_render.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        command_list_->ResourceBarrier(1, &to_render);
+        D3D12_RESOURCE_BARRIER scene_to_render{};
+        scene_to_render.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        scene_to_render.Transition.pResource = scene_color_.Get();
+        scene_to_render.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        scene_to_render.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        scene_to_render.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        command_list_->ResourceBarrier(1, &scene_to_render);
 
-        D3D12_CPU_DESCRIPTOR_HANDLE rtv = rtv_heap_->GetCPUDescriptorHandleForHeapStart();
-        rtv.ptr += static_cast<SIZE_T>(frame_index_) * rtv_increment_;
+        const auto scene_rtv = upscale_rtv_heap_->GetCPUDescriptorHandleForHeapStart();
         const auto dsv = dsv_heap_->GetCPUDescriptorHandleForHeapStart();
-        command_list_->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+        command_list_->OMSetRenderTargets(1, &scene_rtv, FALSE, &dsv);
 
         constexpr float clear_color[] = {0.018f, 0.025f, 0.045f, 1.0f};
-        command_list_->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
+        command_list_->ClearRenderTargetView(scene_rtv, clear_color, 0, nullptr);
         command_list_->ClearDepthStencilView(
             dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-        D3D12_VIEWPORT viewport{};
-        viewport.Width = static_cast<float>(width_);
-        viewport.Height = static_cast<float>(height_);
-        viewport.MaxDepth = 1.0f;
-        D3D12_RECT scissor{0, 0, static_cast<LONG>(width_), static_cast<LONG>(height_)};
-        command_list_->RSSetViewports(1, &viewport);
-        command_list_->RSSetScissorRects(1, &scissor);
+        D3D12_VIEWPORT scene_viewport{};
+        scene_viewport.Width = static_cast<float>(render_width_);
+        scene_viewport.Height = static_cast<float>(render_height_);
+        scene_viewport.MaxDepth = 1.0f;
+        D3D12_RECT scene_scissor{0, 0, static_cast<LONG>(render_width_),
+                                static_cast<LONG>(render_height_)};
+        command_list_->RSSetViewports(1, &scene_viewport);
+        command_list_->RSSetScissorRects(1, &scene_scissor);
 
         command_list_->SetGraphicsRootSignature(root_signature_.Get());
         command_list_->SetGraphicsRootConstantBufferView(
             0, constant_buffers_[frame_index_]->GetGPUVirtualAddress());
-
         command_list_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         command_list_->IASetVertexBuffers(0, 1, &vertex_buffer_view_);
         command_list_->IASetIndexBuffer(&index_buffer_view_);
         command_list_->DrawIndexedInstanced(index_count_, 1, 0, 0, 0);
 
-        D3D12_RESOURCE_BARRIER to_present = to_render;
-        to_present.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        to_present.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-        command_list_->ResourceBarrier(1, &to_present);
+        D3D12_RESOURCE_BARRIER scene_to_sample = scene_to_render;
+        scene_to_sample.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        scene_to_sample.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        command_list_->ResourceBarrier(1, &scene_to_sample);
+
+        D3D12_RESOURCE_BARRIER output_to_render{};
+        output_to_render.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        output_to_render.Transition.pResource = render_targets_[frame_index_].Get();
+        output_to_render.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        output_to_render.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        output_to_render.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        command_list_->ResourceBarrier(1, &output_to_render);
+
+        D3D12_CPU_DESCRIPTOR_HANDLE output_rtv = rtv_heap_->GetCPUDescriptorHandleForHeapStart();
+        output_rtv.ptr += static_cast<SIZE_T>(frame_index_) * rtv_increment_;
+        command_list_->OMSetRenderTargets(1, &output_rtv, FALSE, nullptr);
+        D3D12_VIEWPORT output_viewport{};
+        output_viewport.Width = static_cast<float>(width_);
+        output_viewport.Height = static_cast<float>(height_);
+        output_viewport.MaxDepth = 1.0f;
+        D3D12_RECT output_scissor{0, 0, static_cast<LONG>(width_), static_cast<LONG>(height_)};
+        command_list_->RSSetViewports(1, &output_viewport);
+        command_list_->RSSetScissorRects(1, &output_scissor);
+
+        ID3D12DescriptorHeap* upscale_heaps[] = {upscale_srv_heap_.Get()};
+        command_list_->SetDescriptorHeaps(1, upscale_heaps);
+        command_list_->SetGraphicsRootSignature(upscale_root_signature_.Get());
+        command_list_->SetPipelineState(upscale_pipeline_.Get());
+        command_list_->SetGraphicsRootDescriptorTable(
+            0, upscale_srv_heap_->GetGPUDescriptorHandleForHeapStart());
+        command_list_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        command_list_->DrawInstanced(3, 1, 0, 0);
+
+        D3D12_RESOURCE_BARRIER output_to_present = output_to_render;
+        output_to_present.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        output_to_present.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+        command_list_->ResourceBarrier(1, &output_to_present);
 
         ThrowIfFailed(command_list_->Close(), "Close command list");
         ID3D12CommandList* command_lists[] = {command_list_.Get()};
@@ -291,10 +331,17 @@ public:
                       "ResizeBuffers");
         width_ = width;
         height_ = height;
+        const auto render_size = XWe::Rendering::Upscaling::SelectRenderResolution(
+            {width_, height_}, upscaling_config_);
+        render_width_ = render_size.width;
+        render_height_ = render_size.height;
         frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
         frame_fence_values_.fill(0);
+        scene_color_.Reset();
+        depth_buffer_.Reset();
         CreateRenderTargets();
-        CreateDepthBuffer(width, height);
+        CreateUpscaleResources();
+        CreateDepthBuffer(render_width_, render_height_);
     }
 
 private:
@@ -306,6 +353,21 @@ private:
                       "Create RTV descriptor heap");
         rtv_increment_ = device_->GetDescriptorHandleIncrementSize(
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+        D3D12_DESCRIPTOR_HEAP_DESC upscale_rtv_desc{};
+        upscale_rtv_desc.NumDescriptors = 1;
+        upscale_rtv_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        ThrowIfFailed(device_->CreateDescriptorHeap(
+            &upscale_rtv_desc, IID_PPV_ARGS(&upscale_rtv_heap_)),
+            "Create upscaling RTV heap");
+
+        D3D12_DESCRIPTOR_HEAP_DESC upscale_srv_desc{};
+        upscale_srv_desc.NumDescriptors = 1;
+        upscale_srv_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        upscale_srv_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        ThrowIfFailed(device_->CreateDescriptorHeap(
+            &upscale_srv_desc, IID_PPV_ARGS(&upscale_srv_heap_)),
+            "Create upscaling SRV heap");
 
         D3D12_DESCRIPTOR_HEAP_DESC dsv_desc{};
         dsv_desc.NumDescriptors = 1;
@@ -345,6 +407,125 @@ private:
             device_->CreateRenderTargetView(render_targets_[index].Get(), nullptr, handle);
             handle.ptr += rtv_increment_;
         }
+    }
+
+    void CreateUpscaleResources() {
+        D3D12_HEAP_PROPERTIES heap{};
+        heap.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+        D3D12_RESOURCE_DESC desc{};
+        desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        desc.Width = render_width_;
+        desc.Height = render_height_;
+        desc.DepthOrArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+        D3D12_CLEAR_VALUE clear{};
+        clear.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        clear.Color[0] = 0.018f;
+        clear.Color[1] = 0.025f;
+        clear.Color[2] = 0.045f;
+        clear.Color[3] = 1.0f;
+
+        ThrowIfFailed(device_->CreateCommittedResource(
+            &heap, D3D12_HEAP_FLAG_NONE, &desc,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &clear,
+            IID_PPV_ARGS(&scene_color_)), "Create low-resolution scene color");
+
+        D3D12_RENDER_TARGET_VIEW_DESC rtv{};
+        rtv.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        device_->CreateRenderTargetView(
+            scene_color_.Get(), &rtv,
+            upscale_rtv_heap_->GetCPUDescriptorHandleForHeapStart());
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
+        srv.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srv.Texture2D.MipLevels = 1;
+        device_->CreateShaderResourceView(
+            scene_color_.Get(), &srv,
+            upscale_srv_heap_->GetCPUDescriptorHandleForHeapStart());
+    }
+
+    void CreateUpscalePipeline() {
+        const std::wstring shader_directory = XWE_SHADER_DIR;
+        const auto vertex_shader = ReadBinaryFile(shader_directory + L"\\upscale_vs.hlsl.cso");
+        const auto pixel_shader = ReadBinaryFile(shader_directory + L"\\upscale_ps.hlsl.cso");
+
+        D3D12_DESCRIPTOR_RANGE range{};
+        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        range.NumDescriptors = 1;
+        range.BaseShaderRegister = 0;
+        range.RegisterSpace = 0;
+        range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+        D3D12_ROOT_PARAMETER parameter{};
+        parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        parameter.DescriptorTable.NumDescriptorRanges = 1;
+        parameter.DescriptorTable.pDescriptorRanges = &range;
+        parameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        D3D12_STATIC_SAMPLER_DESC sampler{};
+        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        sampler.ShaderRegister = 0;
+        sampler.RegisterSpace = 0;
+        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        sampler.MaxLOD = D3D12_FLOAT32_MAX;
+
+        D3D12_ROOT_SIGNATURE_DESC root_desc{};
+        root_desc.NumParameters = 1;
+        root_desc.pParameters = &parameter;
+        root_desc.NumStaticSamplers = 1;
+        root_desc.pStaticSamplers = &sampler;
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> errors;
+        ThrowIfFailed(D3D12SerializeRootSignature(
+            &root_desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errors),
+            "Serialize upscaling root signature");
+        ThrowIfFailed(device_->CreateRootSignature(
+            0, signature->GetBufferPointer(), signature->GetBufferSize(),
+            IID_PPV_ARGS(&upscale_root_signature_)),
+            "Create upscaling root signature");
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC pso{};
+        pso.pRootSignature = upscale_root_signature_.Get();
+        pso.VS = {vertex_shader.data(), vertex_shader.size()};
+        pso.PS = {pixel_shader.data(), pixel_shader.size()};
+        pso.BlendState.AlphaToCoverageEnable = FALSE;
+        pso.BlendState.IndependentBlendEnable = FALSE;
+        const D3D12_RENDER_TARGET_BLEND_DESC blend = {
+            FALSE, FALSE,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_LOGIC_OP_NOOP, D3D12_COLOR_WRITE_ENABLE_ALL
+        };
+        for (auto& target : pso.BlendState.RenderTarget) target = blend;
+        pso.SampleMask = UINT_MAX;
+        pso.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+        pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        pso.RasterizerState.DepthClipEnable = TRUE;
+        pso.DepthStencilState.DepthEnable = FALSE;
+        pso.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+        pso.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+        pso.DepthStencilState.StencilEnable = FALSE;
+        pso.InputLayout = {nullptr, 0};
+        pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        pso.NumRenderTargets = 1;
+        pso.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        pso.SampleDesc.Count = 1;
+        ThrowIfFailed(device_->CreateGraphicsPipelineState(
+            &pso, IID_PPV_ARGS(&upscale_pipeline_)),
+            "Create spatial upscaling PSO");
     }
 
     void CreateDepthBuffer(UINT width, UINT height) {
@@ -558,7 +739,8 @@ private:
         const XMVECTOR target = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
         const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
         const XMMATRIX view = XMMatrixLookAtLH(eye, target, up);
-        const float aspect = static_cast<float>(width_) / static_cast<float>(height_);
+        const float aspect = static_cast<float>(render_width_) /
+                             static_cast<float>(render_height_);
         const XMMATRIX projection = XMMatrixPerspectiveFovLH(
             XMConvertToRadians(60.0f), aspect, 0.1f, 100.0f);
 
@@ -596,7 +778,12 @@ private:
     ComPtr<IDXGISwapChain3> swap_chain_;
     ComPtr<ID3D12DescriptorHeap> rtv_heap_;
     ComPtr<ID3D12DescriptorHeap> dsv_heap_;
+    ComPtr<ID3D12DescriptorHeap> upscale_rtv_heap_;
+    ComPtr<ID3D12DescriptorHeap> upscale_srv_heap_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> render_targets_{};
+    ComPtr<ID3D12Resource> scene_color_;
+    ComPtr<ID3D12RootSignature> upscale_root_signature_;
+    ComPtr<ID3D12PipelineState> upscale_pipeline_;
     ComPtr<ID3D12Resource> depth_buffer_;
     std::array<ComPtr<ID3D12CommandAllocator>, kFrameCount> command_allocators_{};
     ComPtr<ID3D12GraphicsCommandList> command_list_;
@@ -606,6 +793,7 @@ private:
     XWe::DX12::PipelineStateCache pso_cache_;
     DxrPipeline dxr_pipeline_;
     XWe::Rendering::Upscaling::FSR3Loader fsr3_loader_;
+    XWe::Rendering::Upscaling::UpscalingConfig upscaling_config_{};
     ComPtr<ID3D12Resource> vertex_buffer_;
     ComPtr<ID3D12Resource> index_buffer_;
     std::array<ComPtr<ID3D12Resource>, kFrameCount> constant_buffers_{};
@@ -615,6 +803,8 @@ private:
     UINT rtv_increment_ = 0;
     UINT width_ = 1;
     UINT height_ = 1;
+    UINT render_width_ = 1;
+    UINT render_height_ = 1;
     UINT frame_index_ = 0;
     UINT index_count_ = 0;
     UINT64 next_fence_value_ = 0;
