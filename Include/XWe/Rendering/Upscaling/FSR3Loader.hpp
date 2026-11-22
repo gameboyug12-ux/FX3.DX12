@@ -47,7 +47,6 @@ private:
     void SetWin32Error(const wchar_t* operation, const std::filesystem::path& path);
 
     HMODULE modules_[static_cast<unsigned int>(Module::Count)]{};
-    DLL_DIRECTORY_COOKIE directory_cookie_ = nullptr;
     std::filesystem::path dll_directory_;
     std::wstring last_error_;
     FSR3Capabilities capabilities_{};
