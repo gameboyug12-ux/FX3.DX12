@@ -9,6 +9,7 @@ add_executable(FX3DX12 WIN32
   src/main.cpp
   src/ObjLoader.cpp
   src/Texture.cpp
+  src/TEX.cpp
   src/Renderer.cpp
 )
 target_compile_features(FX3DX12 PRIVATE cxx_std_20)
