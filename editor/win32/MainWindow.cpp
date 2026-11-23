@@ -23,7 +23,7 @@ bool MainWindow::create(HINSTANCE instance,int showCommand){
     instance_=instance;INITCOMMONCONTROLSEX ic{sizeof(ic),ICC_TREEVIEW_CLASSES|ICC_BAR_CLASSES|ICC_STANDARD_CLASSES};InitCommonControlsEx(&ic);
     WNDCLASSEXW wc{sizeof(wc)};wc.style=CS_HREDRAW|CS_VREDRAW;wc.lpfnWndProc=windowProc;wc.hInstance=instance;wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);wc.hIcon=LoadIconW(nullptr,IDI_APPLICATION);wc.hbrBackground=(HBRUSH)(COLOR_BTNFACE+1);wc.lpszClassName=kClassName;
     if(!RegisterClassExW(&wc)&&GetLastError()!=ERROR_CLASS_ALREADY_EXISTS)return false;
-    hwnd_=CreateWindowExW(0,kClassName,L"FX3 Editor 0.3.9 RC-1",WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1500,900,nullptr,nullptr,instance,this);
+    hwnd_=CreateWindowExW(0,kClassName,L"FX3 Editor 0.4.1",WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1500,900,nullptr,nullptr,instance,this);
     if(!hwnd_)return false;ShowWindow(hwnd_,showCommand);UpdateWindow(hwnd_);return true;
 }
 int MainWindow::run(){MSG msg{};while(GetMessageW(&msg,nullptr,0,0)>0){TranslateMessage(&msg);DispatchMessageW(&msg);}return (int)msg.wParam;}
@@ -53,7 +53,7 @@ void MainWindow::createChildren(){
     console_=CreateWindowExW(WS_EX_CLIENTEDGE,L"EDIT",L"",WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL,0,0,0,0,hwnd_,(HMENU)ID_CONSOLE,instance_,nullptr);setFont(console_);
     viewportWindow_=CreateWindowExW(WS_EX_CLIENTEDGE,L"STATIC",L"",WS_CHILD|WS_VISIBLE|SS_BLACKRECT,0,0,0,0,hwnd_,(HMENU)ID_VIEWPORT,instance_,nullptr);
     status_=CreateWindowExW(0,STATUSCLASSNAMEW,L"Ready | DX12 / DXR",WS_CHILD|WS_VISIBLE|SBARS_SIZEGRIP,0,0,0,0,hwnd_,(HMENU)ID_STATUS,instance_,nullptr);
-    rebuildOutliner();refreshProperties();appendLog(L"FX3 Editor 0.3.9 RC-1 initialized (native Win32).");appendLog(L"Scene files use the versioned .fx3scene JSON format.");appendLog(L"DXR preview currently uses the renderer's test triangle.");
+    rebuildOutliner();refreshProperties();appendLog(L"FX3 Editor 0.4.1 initialized (native Win32).");appendLog(L"Scene files use the versioned .fx3scene JSON format.");appendLog(L"DXR preview currently uses the renderer's test triangle.");
 }
 void MainWindow::layout(int width,int height){
     constexpr int statusHeight=22,top=40,bottom=165,left=230,right=270;
@@ -74,7 +74,7 @@ void MainWindow::refreshProperties(){
     SetWindowTextW(nameEdit_,o->name.c_str());SetWindowTextW(typeLabel_,o->type.c_str());
     for(int i=0;i<9;++i){const auto& v=i<3?o->position:i<6?o->rotation:o->scale;auto s=formatFloat(v[i%3]);SetWindowTextW(transformEdits_[i],s.c_str());}
 }
-void MainWindow::updateTitle(){std::wstring p=scene_.filePath().empty()?L"Untitled":scene_.filePath();SetWindowTextW(hwnd_,(L"FX3 Editor 0.3.9 RC-1 — "+p+(scene_.isDirty()?L" *":L"")).c_str());}
+void MainWindow::updateTitle(){std::wstring p=scene_.filePath().empty()?L"Untitled":scene_.filePath();SetWindowTextW(hwnd_,(L"FX3 Editor 0.4.1 — "+p+(scene_.isDirty()?L" *":L"")).c_str());}
 void MainWindow::appendLog(const std::wstring& s){appendText(console_,s);}
 void MainWindow::setStatus(const std::wstring& s){SendMessageW(status_,SB_SETTEXTW,0,(LPARAM)s.c_str());}
 bool MainWindow::maybeSave(){if(!scene_.isDirty())return true;int r=MessageBoxW(hwnd_,L"The current scene has unsaved changes. Save before continuing?",L"Unsaved Scene",MB_ICONWARNING|MB_YESNOCANCEL);if(r==IDCANCEL)return false;if(r==IDYES)return saveScene(false);return true;}
@@ -95,7 +95,7 @@ LRESULT MainWindow::handleMessage(UINT m,WPARAM w,LPARAM l){
     case WM_CREATE:createMenus();createChildren();SetTimer(hwnd_,1,16,nullptr);try{viewport_.initialize(viewportWindow_,960,600);rendererReady_=true;appendLog(L"DXR viewport initialized.");setStatus(viewport_.status());}catch(const std::exception& e){std::string s=e.what();appendLog(L"DXR initialization failed: "+std::wstring(s.begin(),s.end()));}return 0;
     case WM_SIZE:if(status_){RECT r{};GetClientRect(hwnd_,&r);layout(r.right,r.bottom);}return 0;
     case WM_KEYDOWN:if((GetKeyState(VK_CONTROL)&0x8000)!=0){switch(w){case 0x4E:newScene();return 0;case 0x4F:openScene();return 0;case 0x53:saveScene(false);return 0;case 0x54:addTriangle();return 0;}}if(w==VK_DELETE){deleteSelected();return 0;}break;
-    case WM_COMMAND:{int id=LOWORD(w),notify=HIWORD(w);switch(id){case ID_NEW:newScene();return 0;case ID_OPEN:openScene();return 0;case ID_SAVE:saveScene(false);return 0;case ID_SAVEAS:saveScene(true);return 0;case ID_EXIT:SendMessageW(hwnd_,WM_CLOSE,0,0);return 0;case ID_ADD:addTriangle();return 0;case ID_DELETE:deleteSelected();return 0;case ID_ABOUT:MessageBoxW(hwnd_,L"FX3.DX12 Editor 0.3.9 RC-1\nNative Win32 | C++20 | Direct3D 12 | DXR",L"About FX3 Editor",MB_OK|MB_ICONINFORMATION);return 0;default:if(notify==EN_KILLFOCUS&&(id==ID_NAME||(id>=ID_TRANSFORM&&id<ID_TRANSFORM+9)))commitProperty(id);return 0;}}
+    case WM_COMMAND:{int id=LOWORD(w),notify=HIWORD(w);switch(id){case ID_NEW:newScene();return 0;case ID_OPEN:openScene();return 0;case ID_SAVE:saveScene(false);return 0;case ID_SAVEAS:saveScene(true);return 0;case ID_EXIT:SendMessageW(hwnd_,WM_CLOSE,0,0);return 0;case ID_ADD:addTriangle();return 0;case ID_DELETE:deleteSelected();return 0;case ID_ABOUT:MessageBoxW(hwnd_,L"FX3.DX12 Editor 0.4.1\nNative Win32 | C++20 | Direct3D 12 | DXR",L"About FX3 Editor",MB_OK|MB_ICONINFORMATION);return 0;default:if(notify==EN_KILLFOCUS&&(id==ID_NAME||(id>=ID_TRANSFORM&&id<ID_TRANSFORM+9)))commitProperty(id);return 0;}}
     case WM_NOTIFY:if(((LPNMHDR)l)->idFrom==ID_TREE&&((LPNMHDR)l)->code==TVN_SELCHANGEDW){selectFromTree();return 0;}break;
     case WM_TIMER:if(w==1&&rendererReady_){try{viewport_.render();}catch(const std::exception& e){KillTimer(hwnd_,1);std::string s=e.what();appendLog(L"DXR render stopped: "+std::wstring(s.begin(),s.end()));}}return 0;
     case WM_CLOSE:if(!maybeSave())return 0;DestroyWindow(hwnd_);return 0;
