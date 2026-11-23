@@ -199,7 +199,7 @@ private:
     }
     void createRaytracingPipeline() {
 #ifndef XWE_SHADER_DIR
-#define XWE_SHADER_DIR L"shaders"
+#define XWE_SHADER_DIR L"out/editor/shaders"
 #endif
         auto dxil=readBinary(std::filesystem::path(XWE_SHADER_DIR)/L"pathtrace.dxil");
         D3D12_DESCRIPTOR_RANGE ranges[2]{};
