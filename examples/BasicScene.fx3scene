@@ -1,0 +1,87 @@
+{
+  "format": "FX3Scene",
+  "version": 1,
+  "objects": [
+    {
+      "id": "camera-main",
+      "name": "Main Camera",
+      "type": "camera",
+      "position": [
+        0,
+        1,
+        -5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "mesh": "",
+      "material": {
+        "base_color": "#ffffff",
+        "metallic": 0,
+        "roughness": 1,
+        "texture": ""
+      }
+    },
+    {
+      "id": "mesh-cube",
+      "name": "Sample Mesh",
+      "type": "mesh",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "mesh": "",
+      "material": {
+        "base_color": "#6f9dcc",
+        "metallic": 0.1,
+        "roughness": 0.45,
+        "texture": ""
+      }
+    },
+    {
+      "id": "light-key",
+      "name": "Key Light",
+      "type": "directional_light",
+      "position": [
+        2,
+        4,
+        -1
+      ],
+      "rotation": [
+        -35,
+        25,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "mesh": "",
+      "material": {
+        "base_color": "#fff2d5",
+        "metallic": 0,
+        "roughness": 1,
+        "texture": ""
+      }
+    }
+  ]
+}
