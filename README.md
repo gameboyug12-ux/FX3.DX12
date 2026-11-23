@@ -71,7 +71,7 @@ The renderer currently supports one static mesh and one albedo texture. Camera c
 
 **Validation:** a Windows/MSVC/D3D12 build has not been run in this environment; verify on Windows 10/11 with the D3D12 debug layer before merging.
 
-## 0.4.1 — Win32 and Tkinter editors
+## 0.4.1 — Win32, Tkinter and PySide6 editors
 
 This branch adds two usable scene-authoring front ends sharing the
 `FX3Scene` v1 JSON format:
@@ -82,8 +82,14 @@ This branch adds two usable scene-authoring front ends sharing the
 - Tkinter editor: scene CRUD, Outliner, transform inspector, material
   parameters, texture references and Wavefront OBJ asset referencing. Run
   `py -3 editor/tkinter/fx3_editor.py` (Python 3.10+).
+- PySide6 editor: Qt Widgets interface with Outliner, object/transform/material
+  inspector, OBJ asset references, console and scene preview. Install with
+  `py -3 -m pip install -r editor/pyside6/requirements.txt`, then run
+  `py -3 editor/pyside6/fx3_editor.py` or `editor/pyside6/run_editor.bat`.
 
-See `docs/0.4.1-editors.md` for build/run instructions and limitations.
+All three editors share `FX3Scene` v1 JSON documents. The PySide6 editor is
+optional and does not alter CMake. See `docs/0.4.1-editors.md` for run
+instructions and limitations.
 The Tkinter viewport is a document preview; the Win32 DXR viewport still
 renders the validation triangle and is not yet driven by editable scene
 geometry. Neither editor has been compiled/runtime-tested on Windows here.
