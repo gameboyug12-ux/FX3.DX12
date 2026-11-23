@@ -70,3 +70,20 @@ Run `build/Debug/FX3DX12.exe` from the repository root.
 The renderer currently supports one static mesh and one albedo texture. Camera controls, scene graph, ECS, material system, mipmaps, compressed textures, and resize-aware swap-chain recreation are outside v0.4 scope.
 
 **Validation:** a Windows/MSVC/D3D12 build has not been run in this environment; verify on Windows 10/11 with the D3D12 debug layer before merging.
+
+## 0.4.1 — Win32 and Tkinter editors
+
+This branch adds two usable scene-authoring front ends sharing the
+`FX3Scene` v1 JSON format:
+
+- Native Win32 editor: Outliner, scene CRUD, transform inspector, console and
+  a DirectX 12/DXR validation viewport. Build with
+  `editor/win32/build_win32_editor.ps1` from Visual Studio Developer PowerShell.
+- Tkinter editor: scene CRUD, Outliner, transform inspector, material
+  parameters, texture references and Wavefront OBJ asset referencing. Run
+  `py -3 editor/tkinter/fx3_editor.py` (Python 3.10+).
+
+See `docs/0.4.1-editors.md` for build/run instructions and limitations.
+The Tkinter viewport is a document preview; the Win32 DXR viewport still
+renders the validation triangle and is not yet driven by editable scene
+geometry. Neither editor has been compiled/runtime-tested on Windows here.
