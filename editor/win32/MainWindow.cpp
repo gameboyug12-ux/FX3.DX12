@@ -17,6 +17,7 @@ std::wstring controlText(HWND h){int n=GetWindowTextLengthW(h);std::wstring s((s
 void setFont(HWND h){SendMessageW(h,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),TRUE);}
 void appendText(HWND edit,const std::wstring& text){if(!edit)return;int n=GetWindowTextLengthW(edit);SendMessageW(edit,EM_SETSEL,n,n);std::wstring line=text+L"\r\n";SendMessageW(edit,EM_REPLACESEL,FALSE,(LPARAM)line.c_str());}
 std::wstring formatFloat(float v){wchar_t b[64];swprintf_s(b,L"%.3f",v);return b;}
+bool parseDouble(HWND edit,double& value){const auto text=controlText(edit);if(text.empty())return false;wchar_t* end=nullptr;value=wcstod(text.c_str(),&end);return end&&end!=text.c_str()&&*end==L'\\0'&&std::isfinite(value);}
 }
 MainWindow::~MainWindow()=default;
 bool MainWindow::create(HINSTANCE instance,int showCommand){
