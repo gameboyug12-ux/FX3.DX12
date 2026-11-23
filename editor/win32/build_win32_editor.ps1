@@ -1,7 +1,8 @@
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
 Set-Location $root
-$vswhere = Join-Path $env:ProgramFiles(x86) "Microsoft Visual Studio/Installer/vswhere.exe"
+$programFilesX86 = [Environment]::GetFolderPath("ProgramFilesX86")
+$vswhere = Join-Path $programFilesX86 "Microsoft Visual Studio/Installer/vswhere.exe"
 if (Test-Path $vswhere) {
     $vs = & $vswhere -latest -products * -property installationPath
     $devShell = Join-Path $vs "Common7/Tools/Launch-VsDevShell.ps1"
