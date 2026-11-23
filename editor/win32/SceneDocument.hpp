@@ -10,6 +10,11 @@ public:
         std::array<float,3> position{0,0,0};
         std::array<float,3> rotation{0,0,0};
         std::array<float,3> scale{1,1,1};
+        std::wstring mesh;
+        std::wstring baseColor=L"#b8c8df";
+        std::wstring texture;
+        float metallic=0.0f;
+        float roughness=0.5f;
     };
     SceneDocument();
     void reset();
