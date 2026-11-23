@@ -129,11 +129,11 @@ class FX3Editor(QMainWindow):
             action = QAction(label, self)
             if shortcut:
                 action.setShortcut(shortcut)
-            action.triggered.connect(callback)
+            action.triggered.connect(lambda _checked=False, fn=callback: fn())
             file_menu.addAction(action)
         file_menu.addSeparator()
         quit_action = QAction("Exit", self)
-        quit_action.triggered.connect(self.close)
+        quit_action.triggered.connect(lambda _checked=False: self.close())
         file_menu.addAction(quit_action)
         scene_menu = bar.addMenu("&Scene")
         for label, callback in [
@@ -144,7 +144,7 @@ class FX3Editor(QMainWindow):
             ("Import OBJ…", self.import_obj), ("Delete Selected", self.delete_selected)
         ]:
             action = QAction(label, self)
-            action.triggered.connect(callback)
+            action.triggered.connect(lambda _checked=False, fn=callback: fn())
             scene_menu.addAction(action)
 
     def _make_ui(self):
@@ -158,7 +158,7 @@ class FX3Editor(QMainWindow):
             ("Import OBJ", self.import_obj), ("Delete", self.delete_selected)
         ]:
             b = QPushButton(label)
-            b.clicked.connect(callback)
+            b.clicked.connect(lambda _checked=False, fn=callback: fn())
             toolbar.addWidget(b)
         toolbar.addStretch(1)
         self.path_label = QLabel("Untitled")
@@ -205,7 +205,7 @@ class FX3Editor(QMainWindow):
         self.mesh_edit = QLineEdit()
         self.mesh_edit.setPlaceholderText("Mesh asset path")
         self.mesh_browse = QPushButton("Browse mesh…")
-        self.mesh_browse.clicked.connect(self.browse_mesh)
+        self.mesh_browse.clicked.connect(lambda _checked=False: self.browse_mesh())
         rl.addWidget(self._group("Object", self._form(("Name", self.name_edit), ("Type", self.kind_combo),
                                                        ("Mesh", self.mesh_edit))))
         transform = QWidget()
@@ -227,14 +227,14 @@ class FX3Editor(QMainWindow):
                 self.transform[group].append(spin)
             tf.addRow(group, row)
         apply_transform = QPushButton("Apply Transform")
-        apply_transform.clicked.connect(self.apply_transform)
+        apply_transform.clicked.connect(lambda _checked=False: self.apply_transform())
         tf.addRow(apply_transform)
         rl.addWidget(self._group("Transform", transform))
 
         material = QWidget()
         mf = QFormLayout(material)
         self.color_button = QPushButton("Choose base color…")
-        self.color_button.clicked.connect(self.choose_color)
+        self.color_button.clicked.connect(lambda _checked=False: self.choose_color())
         self.color_value = "#b8c8df"
         self.metal = QDoubleSpinBox()
         self.rough = QDoubleSpinBox()
@@ -251,15 +251,15 @@ class FX3Editor(QMainWindow):
         tr = QHBoxLayout(texture_row)
         tr.setContentsMargins(0,0,0,0)
         assign = QPushButton("Assign…")
-        assign.clicked.connect(self.assign_texture)
+        assign.clicked.connect(lambda _checked=False: self.assign_texture())
         clear = QPushButton("Clear")
-        clear.clicked.connect(self.clear_texture)
+        clear.clicked.connect(lambda _checked=False: self.clear_texture())
         tr.addWidget(assign)
         tr.addWidget(clear)
         mf.addRow("Texture", self.texture_label)
         mf.addRow(texture_row)
         apply_material = QPushButton("Apply Material")
-        apply_material.clicked.connect(self.apply_material)
+        apply_material.clicked.connect(lambda _checked=False: self.apply_material())
         mf.addRow(apply_material)
         rl.addWidget(self._group("Material", material))
         rl.addStretch(1)
