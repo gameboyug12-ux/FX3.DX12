@@ -6,6 +6,7 @@ import json
 import math
 import os
 import pathlib
+import subprocess
 import sys
 import uuid
 from dataclasses import dataclass, asdict, field
@@ -135,6 +136,10 @@ class FX3Editor(QMainWindow):
         quit_action = QAction("Exit", self)
         quit_action.triggered.connect(lambda _checked=False: self.close())
         file_menu.addAction(quit_action)
+        engine_menu = bar.addMenu("&Engine")
+        run_engine = QAction("Run Engine DLL Test", self)
+        run_engine.triggered.connect(lambda _checked=False: self.run_engine_test())
+        engine_menu.addAction(run_engine)
         scene_menu = bar.addMenu("&Scene")
         for label, callback in [
             ("Add Empty", lambda: self.add_object("Empty", "empty")),
@@ -155,7 +160,8 @@ class FX3Editor(QMainWindow):
             ("New", self.new_scene), ("Open", self.open_scene), ("Save", self.save_scene),
             ("+ Mesh", lambda: self.add_object("Mesh", "mesh")),
             ("+ Empty", lambda: self.add_object("Empty", "empty")),
-            ("Import OBJ", self.import_obj), ("Delete", self.delete_selected)
+            ("Import OBJ", self.import_obj), ("Delete", self.delete_selected),
+            ("Run Engine DLL", self.run_engine_test)
         ]:
             b = QPushButton(label)
             b.clicked.connect(lambda _checked=False, fn=callback: fn())
@@ -454,6 +460,18 @@ class FX3Editor(QMainWindow):
         self.selected_id = obj.id
         self.refresh(obj.id)
         self.log(f"Imported OBJ reference: {path} ({vertices} vertices, {faces} faces)")
+
+    def run_engine_test(self):
+        root = pathlib.Path(__file__).resolve().parents[2]
+        test_script = root / 'tests' / 'python' / 'engine_dll_test.py'
+        if not test_script.is_file():
+            QMessageBox.warning(self, 'Engine DLL test', f'Test program not found: {test_script}')
+            return
+        try:
+            subprocess.Popen([sys.executable, str(test_script), '--run'], cwd=str(root))
+            self.log('Started Python test program for xwe_engine.dll')
+        except OSError as exc:
+            QMessageBox.critical(self, 'Engine DLL test', str(exc))
 
     def maybe_save(self):
         if not self.doc.dirty:
