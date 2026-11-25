@@ -1,0 +1,22 @@
+name: Windows D3D12 build
+
+on:
+  push:
+    branches: [main, "feature/**", "release/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Generate sample OBJ and FXTEX
+        run: python tools/make_sample_assets.py
+      - name: Configure
+        run: cmake -S . -B build -A x64
+      - name: Build
+        run: cmake --build build --config Debug
