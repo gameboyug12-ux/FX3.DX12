@@ -71,25 +71,51 @@ The renderer currently supports one static mesh and one albedo texture. Camera c
 
 **Validation:** a Windows/MSVC/D3D12 build has not been run in this environment; verify on Windows 10/11 with the D3D12 debug layer before merging.
 
-## 0.4.1 — Win32, Tkinter and PySide6 editors
 
-This branch adds two usable scene-authoring front ends sharing the
-`FX3Scene` v1 JSON format:
+## 0.4.2 — Python PySide6 editor + XWe engine DLL
 
-- Native Win32 editor: Outliner, scene CRUD, transform inspector, console and
-  a DirectX 12/DXR validation viewport. Build with
-  `editor/win32/build_win32_editor.ps1` from Visual Studio Developer PowerShell.
-- Tkinter editor: scene CRUD, Outliner, transform inspector, material
-  parameters, texture references and Wavefront OBJ asset referencing. Run
-  `py -3 editor/tkinter/fx3_editor.py` (Python 3.10+).
-- PySide6 editor: Qt Widgets interface with Outliner, object/transform/material
-  inspector, OBJ asset references, console and scene preview. Install with
-  `py -3 -m pip install -r editor/pyside6/requirements.txt`, then run
-  `py -3 editor/pyside6/fx3_editor.py` or `editor/pyside6/run_editor.bat`.
+The 0.4.2 workflow is Python-first. The editor is PySide6; the engine is
+exposed as the native `xwe_engine.dll`; a standalone Python ctypes test
+program loads that DLL and exercises its public C ABI.
 
-All three editors share `FX3Scene` v1 JSON documents. The PySide6 editor is
-optional and does not alter CMake. See `docs/0.4.1-editors.md` for run
-instructions and limitations.
-The Tkinter viewport is a document preview; the Win32 DXR viewport still
-renders the validation triangle and is not yet driven by editable scene
-geometry. Neither editor has been compiled/runtime-tested on Windows here.
+- PySide6 editor: `editor/pyside6/fx3_editor.py`
+- Engine DLL C ABI: `include/XWeApplication.h` and `src/xwe_application.cpp`
+- DLL-only build helper: `engine/build_engine_dll.ps1`
+- Python DLL test: `tests/python/engine_dll_test.py`
+- No native C++ editor executable or standalone renderer is part of this
+  release workflow. The build helper sets `FX3_BUILD_RENDERER=OFF` and
+  `XWE_BUILD_ENGINE=ON`.
+
+Build the DLL from a Visual Studio 2022 Developer PowerShell:
+
+```powershell
+.\engine\build_engine_dll.ps1 -Configuration Release
+```
+
+Run a DLL load/create/destroy smoke test:
+
+```powershell
+py -3 tests/python/engine_dll_test.py --smoke
+```
+
+Launch the native engine window through the DLL:
+
+```powershell
+py -3 tests/python/engine_dll_test.py --run
+```
+
+Install and start the editor:
+
+```powershell
+py -3 -m pip install -r editor/pyside6/requirements.txt
+py -3 editor/pyside6/fx3_editor.py
+```
+
+The editor's **Engine → Run Engine DLL Test** command launches the Python
+test program in `--run` mode. The engine DLL currently exposes an application
+lifecycle API; it creates and runs its own Win32/D3D12 window rather than
+rendering into the PySide6 viewport. The PySide6 viewport remains a scene
+document preview. Build and runtime validation require Windows x64 and have
+not been performed in this environment.
+
+See `docs/0.4.2-python-editor-and-engine-dll.md` for details.
