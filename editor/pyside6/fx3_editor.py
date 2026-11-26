@@ -113,7 +113,7 @@ class FX3Editor(QMainWindow):
         self.doc = SceneDocument()
         self.selected_id = None
         self._loading = False
-        self.setWindowTitle("FX3 PySide6 Editor 0.4.1")
+        self.setWindowTitle("FX3 PySide6 Editor 0.4.3")
         self.resize(1440, 900)
         self._make_actions()
         self._make_ui()
