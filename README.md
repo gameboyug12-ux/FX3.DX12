@@ -119,3 +119,21 @@ document preview. Build and runtime validation require Windows x64 and have
 not been performed in this environment.
 
 See `docs/0.4.2-python-editor-and-engine-dll.md` for details.
+
+
+## 0.4.3 — Engine DLL build
+
+The default CMake configuration builds the XWe engine DLL and its required
+DXR shader library; the standalone renderer target is OFF by default.
+Configure with Visual Studio 2022 x64 and CMake 3.24+:
+
+```powershell
+cmake -S . -B build -A x64 -DXWE_BUILD_ENGINE=ON -DFX3_BUILD_RENDERER=OFF
+cmake --build build --config Release --target xwe_engine
+py -3 tests/python/engine_dll_test.py --smoke
+```
+
+DXC is discovered from PATH or can be specified with
+`-DXC_EXECUTABLE="C:/path/to/dxc.exe"`. The build compiles
+`shaders/pathtrace.hlsl` as a `lib_6_3` DXIL library and places it beside
+`xwe_engine.dll`. See `docs/0.4.3-cmake-engine-dll.md`.
