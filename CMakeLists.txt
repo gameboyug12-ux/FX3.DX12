@@ -72,12 +72,13 @@ if(XWE_BUILD_ENGINE)
     # local SDK location as a convenience. No machine-specific path is forced.
     set(DXC_EXECUTABLE "" CACHE FILEPATH "Path to DirectX Shader Compiler (dxc.exe)")
     if(NOT DXC_EXECUTABLE)
-        find_program(DXC_EXECUTABLE
+        find_program(_XWE_DXC_DISCOVERED
             NAMES dxc dxc.exe
             HINTS
                 "$ENV{DXC_PATH}"
                 "C:/XWe0.2/cmp-utils/dx/bin/x64"
         )
+        set(DXC_EXECUTABLE "${_XWE_DXC_DISCOVERED}")
     endif()
 
     if(NOT DXC_EXECUTABLE)
@@ -87,12 +88,12 @@ if(XWE_BUILD_ENGINE)
     endif()
 
     set(XWE_SHADER_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/shaders/pathtrace.hlsl")
-    set(XWE_SHADER_OUTPUT "$<TARGET_FILE_DIR:xwe_engine>/shaders/pathtrace.dxil")
+    set(XWE_SHADER_OUTPUT "${CMAKE_BINARY_DIR}/bin/$<CONFIG>/shaders/pathtrace.dxil")
 
     add_custom_command(
         OUTPUT "${XWE_SHADER_OUTPUT}"
         COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:xwe_engine>/shaders"
+                "${CMAKE_BINARY_DIR}/bin/$<CONFIG>/shaders"
         COMMAND "${DXC_EXECUTABLE}"
                 -T lib_6_3
                 -Fo "${XWE_SHADER_OUTPUT}"
@@ -142,7 +143,6 @@ if(XWE_BUILD_ENGINE)
         ${FX3_COMMON_DEFINITIONS}
         XWE_BUILD_DLL
         XWE_SHADER_DIR=L"$<TARGET_FILE_DIR:xwe_engine>/shaders"
-        $<$<CONFIG:Debug>:XWE_DEBUG>
         $<$<BOOL:${XWE_ENABLE_FSR3}>:FX3_ENABLE_FSR3>
     )
 
